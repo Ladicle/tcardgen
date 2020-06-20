@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
@@ -161,7 +162,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	dr.Src = image.NewUniform(gray)
 	dr.Dot.X = fixed.I(130)
 	dr.Dot.Y = fixed.I(124 + 42)
-	if err := tgimg.DrawText(dr, o.category, 946); err != nil {
+	if err := tgimg.DrawText(dr, strings.ToUpper(o.category), 946); err != nil {
 		return err
 	}
 
