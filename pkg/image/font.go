@@ -25,12 +25,12 @@ const (
 	TrueTypeFontExt = ".ttf"
 )
 
-func LoadFontSetsFromDir(dir string) (*FontSet, error) {
+func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
 	finfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	fs := NewFontSet()
+	fs := NewFontFamily()
 	for _, finfo := range finfos {
 		fn := finfo.Name()
 		name := fn[:len(fn)-len(filepath.Ext(fn))]
@@ -45,16 +45,16 @@ func LoadFontSetsFromDir(dir string) (*FontSet, error) {
 	return fs, nil
 }
 
-func NewFontSet() *FontSet {
-	return &FontSet{fonts: make(map[FontStyle]*truetype.Font)}
+func NewFontFamily() *FontFamily {
+	return &FontFamily{fonts: make(map[FontStyle]*truetype.Font)}
 }
 
-type FontSet struct {
+type FontFamily struct {
 	fonts map[FontStyle]*truetype.Font
 }
 
 // LoadFont loads font from a file
-func (fs *FontSet) LoadFont(filename string, style FontStyle) error {
+func (fs *FontFamily) LoadFont(filename string, style FontStyle) error {
 	if filepath.Ext(filename) != TrueTypeFontExt {
 		return fmt.Errorf("%q is not TrueTypeFont format", filepath.Base(filename))
 	}
@@ -73,6 +73,6 @@ func (fs *FontSet) LoadFont(filename string, style FontStyle) error {
 	return nil
 }
 
-func (fs *FontSet) GetFont(style FontStyle) *truetype.Font {
+func (fs *FontFamily) GetFont(style FontStyle) *truetype.Font {
 	return fs.fonts[style]
 }

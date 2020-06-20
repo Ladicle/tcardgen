@@ -128,7 +128,7 @@ const (
 
 func (o *RootCommandOption) Run(streams IOStreams) error {
 	// load fonts
-	fs, err := tgimg.LoadFontSetsFromDir(fontDir)
+	ff, err := tgimg.LoadFontFamilyFromDir(fontDir)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	// write texts
 	dr := &font.Drawer{Dst: dst, Dot: fixed.Point26_6{}}
 
-	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleBold), &truetype.Options{Size: 72})
+	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleBold), &truetype.Options{Size: 72})
 	dr.Src = image.Black
 	dr.Dot.X = fixed.I(127)
 	dr.Dot.Y = fixed.I(173 + 72)
@@ -158,7 +158,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if err != nil {
 		return err
 	}
-	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 42})
+	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 42})
 	dr.Src = image.NewUniform(gray)
 	dr.Dot.X = fixed.I(130)
 	dr.Dot.Y = fixed.I(124 + 42)
@@ -167,7 +167,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 
 	info := fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2"))
-	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 38})
+	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 38})
 	dr.Dot.X = fixed.I(231)
 	dr.Dot.Y = fixed.I(449 + 38)
 	if err := tgimg.DrawText(dr, info, 946); err != nil {
