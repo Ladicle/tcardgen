@@ -9,13 +9,12 @@ import (
 )
 
 func init() {
-	flags := pflag.NewFlagSet("kubectl-rolesum", pflag.ExitOnError)
+	flags := pflag.NewFlagSet("tcardgen", pflag.ExitOnError)
 	pflag.CommandLine = flags
 }
 
 func main() {
-	command := cmd.NewRootCmd()
-	if err := command.Execute(); err != nil {
+	if err := cmd.NewRootCmd().Execute(); err != nil {
 		log.Fatal(err)
 	}
 }

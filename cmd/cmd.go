@@ -2,11 +2,20 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
+	"image"
+	"image/draw"
 	"io"
 	"os"
+	"time"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
+	"github.com/golang/freetype/truetype"
 	"github.com/spf13/cobra"
+	"golang.org/x/image/font"
+	"golang.org/x/image/math/fixed"
+
+	tgimg "github.com/Ladicle/tcardgen/pkg/image"
 )
 
 var (
@@ -25,7 +34,11 @@ type RootCommandOption struct {
 	Filename   string
 	ConfigPath string
 
-	cfm pageparser.ContentFrontMatter
+	title     string
+	author    string
+	category  string
+	tags      []string
+	updatedAt time.Time
 }
 
 func NewRootCmd() *cobra.Command {
@@ -70,10 +83,92 @@ func (o *RootCommandOption) Complete() error {
 	if err != nil {
 		return err
 	}
-	o.cfm, err = pageparser.ParseFrontMatterAndContent(file)
+	cfm, err := pageparser.ParseFrontMatterAndContent(file)
+
+	title := cfm.FrontMatter["title"].(string)
+	if title == "" {
+		return fmt.Errorf("can not get title from front matter: %+v", cfm.FrontMatter)
+	}
+	o.title = title
+
+	author := cfm.FrontMatter["author"].([]interface{})
+	if len(author) < 1 {
+		return fmt.Errorf("can not get author from front matter: %+v", cfm.FrontMatter)
+	}
+	o.author = author[0].(string)
+
+	categories := cfm.FrontMatter["categories"].([]interface{})
+	if len(categories) < 1 {
+		return fmt.Errorf("can not get category from front matter: %+v", cfm.FrontMatter)
+	}
+	o.category = categories[0].(string)
+
+	tags := cfm.FrontMatter["tags"].([]interface{})
+	if len(tags) < 1 {
+		return fmt.Errorf("can not get tags from front matter: %+v", cfm.FrontMatter)
+	}
+	for _, t := range tags {
+		o.tags = append(o.tags, t.(string))
+	}
+
+	o.updatedAt, err = time.Parse("2006-01-02T15:04:05-07:00", cfm.FrontMatter["lastmod"].(string))
 	return err
 }
 
+var (
+	fontDir      = "font"
+	templateFile = "template.png"
+	outputPath   = "thumbnail.png"
+)
+
 func (o *RootCommandOption) Run(streams IOStreams) error {
+	// load fonts
+	fs, err := tgimg.LoadFontSetsFromDir(fontDir)
+	if err != nil {
+		return err
+	}
+
+	// load template
+	tpl, err := tgimg.LoadFromFile(templateFile)
+	if err != nil {
+		return err
+	}
+
+	// write template
+	dst := image.NewRGBA(tpl.Bounds())
+	draw.Draw(dst, dst.Bounds(), tpl, image.Point{}, draw.Over)
+
+	// write texts
+	dr := &font.Drawer{Dst: dst, Dot: fixed.Point26_6{}}
+
+	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleBold), &truetype.Options{Size: 72})
+	dr.Src = image.Black
+	dr.Dot.X = fixed.I(127)
+	dr.Dot.Y = fixed.I(168 + 72)
+	if err := tgimg.DrawText(dr, o.title, 946); err != nil {
+		return err
+	}
+
+	gray, err := tgimg.Hex("#8D8D8D")
+	if err != nil {
+		return err
+	}
+	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 42})
+	dr.Src = image.NewUniform(gray)
+	dr.Dot.X = fixed.I(130)
+	dr.Dot.Y = fixed.I(124 + 42)
+	if err := tgimg.DrawText(dr, o.category, 946); err != nil {
+		return err
+	}
+
+	info := fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2"))
+	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 38})
+	dr.Dot.X = fixed.I(231)
+	dr.Dot.Y = fixed.I(449 + 38)
+	if err := tgimg.DrawText(dr, info, 946); err != nil {
+		return err
+	}
+
+	tgimg.SaveAsPNG(outputPath, dst)
 	return nil
 }
