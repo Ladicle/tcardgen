@@ -148,7 +148,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	dr.Face = truetype.NewFace(fs.GetFont(tgimg.FontStyleBold), &truetype.Options{Size: 72})
 	dr.Src = image.Black
 	dr.Dot.X = fixed.I(127)
-	dr.Dot.Y = fixed.I(168 + 72)
+	dr.Dot.Y = fixed.I(173 + 72)
 	if err := tgimg.DrawText(dr, o.title, 946); err != nil {
 		return err
 	}
