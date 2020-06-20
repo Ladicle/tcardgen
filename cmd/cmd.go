@@ -119,7 +119,7 @@ func getFirstFMItem(cfm pageparser.ContentFrontMatter, key string) (string, erro
 	return categoriesitems[0].(string), nil
 }
 
-var (
+const (
 	fontDir      = "font"
 	templateFile = "template.png"
 	outputPath   = "thumbnail.png"
