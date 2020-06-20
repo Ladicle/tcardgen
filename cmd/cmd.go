@@ -91,17 +91,13 @@ func (o *RootCommandOption) Complete() error {
 	}
 	o.title = title
 
-	author := cfm.FrontMatter["author"].([]interface{})
-	if len(author) < 1 {
-		return fmt.Errorf("can not get author from front matter: %+v", cfm.FrontMatter)
+	if o.author, err = getFirstFMItem(cfm, "author"); err != nil {
+		return err
 	}
-	o.author = author[0].(string)
 
-	categories := cfm.FrontMatter["categories"].([]interface{})
-	if len(categories) < 1 {
-		return fmt.Errorf("can not get category from front matter: %+v", cfm.FrontMatter)
+	if o.category, err = getFirstFMItem(cfm, "categories"); err != nil {
+		return err
 	}
-	o.category = categories[0].(string)
 
 	tags := cfm.FrontMatter["tags"].([]interface{})
 	if len(tags) < 1 {
@@ -113,6 +109,14 @@ func (o *RootCommandOption) Complete() error {
 
 	o.updatedAt, err = time.Parse("2006-01-02T15:04:05-07:00", cfm.FrontMatter["lastmod"].(string))
 	return err
+}
+
+func getFirstFMItem(cfm pageparser.ContentFrontMatter, key string) (string, error) {
+	categoriesitems := cfm.FrontMatter[key].([]interface{})
+	if len(categoriesitems) < 1 {
+		return "", fmt.Errorf("can not get %s from front matter: %+v", key, cfm.FrontMatter)
+	}
+	return categoriesitems[0].(string), nil
 }
 
 var (
