@@ -30,8 +30,11 @@ type Canvas struct {
 	dst *image.RGBA
 	fdr *font.Drawer
 
-	maxWidth  int
-	lineSpace int
+	bgColor                          *image.Uniform
+	maxWidth                         int
+	lineSpace                        int
+	bpTop, bpRight, bpBottom, bpLeft int
+	boxSpace                         int
 }
 
 // SaveAsPNG saves this canvas as a PNG file into the specified path.
@@ -106,6 +109,33 @@ func (c *Canvas) drawMultiLineText(text string) {
 	}
 }
 
+func (c *Canvas) DrawBoxTexts(texts []string, x, y int, opts ...textDrawOption) error {
+	for _, f := range opts {
+		if err := f(c); err != nil {
+			return err
+		}
+	}
+
+	p := image.Pt(x, y)
+	fm := c.fdr.Face.Metrics()
+	fh := fm.Height
+	rect := image.Rect(0, y, 0, y+fh.Round()+c.bpTop+c.bpBottom+fm.Descent.Round())
+
+	for _, s := range texts {
+		fw := c.fdr.MeasureString(s)
+		rect.Min.X = p.X
+		rect.Max.X = p.X + fw.Round() + c.bpLeft + c.bpRight
+		draw.Draw(c.dst, rect, c.bgColor, p, draw.Src)
+
+		c.fdr.Dot.X = fixed.I(p.X + c.bpLeft)
+		c.fdr.Dot.Y = fixed.I(p.Y+c.bpTop-1) + fh
+		c.fdr.DrawString(s)
+
+		p.X = rect.Max.X + c.boxSpace
+	}
+	return nil
+}
+
 type textDrawOption func(*Canvas) error
 
 // FontFace sets font face.
@@ -136,6 +166,14 @@ func FgColor(color *image.Uniform) textDrawOption {
 	}
 }
 
+// BgColor sets background color.
+func BgColor(color *image.Uniform) textDrawOption {
+	return func(c *Canvas) error {
+		c.bgColor = color
+		return nil
+	}
+}
+
 // FgHexColor sets foreground color hex.
 func FgHexColor(hex string) textDrawOption {
 	return func(c *Canvas) error {
@@ -144,6 +182,18 @@ func FgHexColor(hex string) textDrawOption {
 			return err
 		}
 		c.fdr.Src = color
+		return nil
+	}
+}
+
+// BgHexColor sets background color hex.
+func BgHexColor(hex string) textDrawOption {
+	return func(c *Canvas) error {
+		color, err := Hex(hex)
+		if err != nil {
+			return err
+		}
+		c.bgColor = color
 		return nil
 	}
 }
@@ -157,10 +207,29 @@ func MaxWidth(max int) textDrawOption {
 	}
 }
 
-// LineSpace sets line space (px) of multi-line text.
+// LineSpace sets line space(px) of multi-line text.
 func LineSpace(px int) textDrawOption {
 	return func(c *Canvas) error {
 		c.lineSpace = px
+		return nil
+	}
+}
+
+// BoxPadding sets box padding(px).
+func BoxPadding(t, r, b, l int) textDrawOption {
+	return func(c *Canvas) error {
+		c.bpTop = t
+		c.bpRight = r
+		c.bpBottom = b
+		c.bpLeft = l
+		return nil
+	}
+}
+
+// BoxSpacing sets box spacing(px).
+func BoxSpacing(px int) textDrawOption {
+	return func(c *Canvas) error {
+		c.boxSpace = px
 		return nil
 	}
 }

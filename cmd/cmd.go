@@ -6,7 +6,6 @@ import (
 	"image"
 	"io"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 
@@ -103,12 +102,10 @@ func (o *RootCommandOption) Complete() error {
 		return fmt.Errorf("can not get tags from front matter: %+v", cfm.FrontMatter)
 	}
 	for _, t := range tags {
-		o.tags = append(o.tags, t.(string))
+		o.tags = append(o.tags, strings.Title(t.(string)))
 	}
 
-	fmt.Println(reflect.TypeOf(cfm.FrontMatter["lastmod"]))
 	o.updatedAt, err = time.Parse("2006-01-02T15:04:05-07:00", cfm.FrontMatter["lastmod"].(string))
-
 	return err
 }
 
@@ -159,6 +156,16 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 		fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2")),
 		227, 441,
 		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 38)); err != nil {
+		return err
+	}
+	if err := c.DrawBoxTexts(
+		o.tags,
+		814, 451,
+		canvas.FgColor(image.White),
+		canvas.BgHexColor("#60BCE0"),
+		canvas.BoxPadding(6, 10, 6, 10),
+		canvas.BoxSpacing(6),
+		canvas.FontFaceFromFFA(ffa, fontfamily.Medium, 22)); err != nil {
 		return err
 	}
 
