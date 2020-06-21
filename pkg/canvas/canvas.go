@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/draw"
+	"strings"
 
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
@@ -26,6 +27,11 @@ func CreateCanvasFromImage(filename string) (*Canvas, error) {
 	}, nil
 }
 
+const (
+	AlineLeft = iota
+	AlineRight
+)
+
 type Canvas struct {
 	dst *image.RGBA
 	fdr *font.Drawer
@@ -35,6 +41,7 @@ type Canvas struct {
 	lineSpace                        int
 	bpTop, bpRight, bpBottom, bpLeft int
 	boxSpace                         int
+	boxAlign                         int
 }
 
 // SaveAsPNG saves this canvas as a PNG file into the specified path.
@@ -117,6 +124,12 @@ func (c *Canvas) DrawBoxTexts(texts []string, x, y int, opts ...textDrawOption) 
 	}
 
 	p := image.Pt(x, y)
+	if c.boxAlign == AlineRight {
+		n := len(texts)
+		p.X -= c.bpLeft*n + c.bpRight*n + c.boxSpace*(n-1) +
+			c.fdr.MeasureString(strings.Join(texts, "")).Round()
+	}
+
 	fm := c.fdr.Face.Metrics()
 	fh := fm.Height
 	rect := image.Rect(0, y, 0, y+fh.Round()+c.bpTop+c.bpBottom+fm.Descent.Round())
@@ -230,6 +243,14 @@ func BoxPadding(t, r, b, l int) textDrawOption {
 func BoxSpacing(px int) textDrawOption {
 	return func(c *Canvas) error {
 		c.boxSpace = px
+		return nil
+	}
+}
+
+// BoxAlign sets box align.
+func BoxAlign(align int) textDrawOption {
+	return func(c *Canvas) error {
+		c.boxAlign = align
 		return nil
 	}
 }

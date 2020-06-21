@@ -160,11 +160,12 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	if err := c.DrawBoxTexts(
 		o.tags,
-		814, 451,
+		1025, 451,
 		canvas.FgColor(image.White),
 		canvas.BgHexColor("#60BCE0"),
 		canvas.BoxPadding(6, 10, 6, 10),
 		canvas.BoxSpacing(6),
+		canvas.BoxAlign(canvas.AlineRight),
 		canvas.FontFaceFromFFA(ffa, fontfamily.Medium, 22)); err != nil {
 		return err
 	}
