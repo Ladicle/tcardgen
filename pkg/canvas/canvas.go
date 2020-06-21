@@ -19,7 +19,7 @@ func CreateCanvasFromImage(filename string) (*Canvas, error) {
 	}
 	// draw background image
 	dst := image.NewRGBA(tpl.Bounds())
-	draw.Draw(dst, dst.Bounds(), tpl, image.Point{}, draw.Over)
+	draw.Draw(dst, dst.Bounds(), tpl, image.Point{}, draw.Src)
 
 	return &Canvas{
 		dst: dst,
