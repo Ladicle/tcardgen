@@ -4,17 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/draw"
 	"io"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
-	"github.com/golang/freetype/truetype"
 	"github.com/spf13/cobra"
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
 
 	tgimg "github.com/Ladicle/tcardgen/pkg/image"
 )
@@ -127,53 +124,43 @@ const (
 )
 
 func (o *RootCommandOption) Run(streams IOStreams) error {
-	// load fonts
 	ff, err := tgimg.LoadFontFamilyFromDir(fontDir)
 	if err != nil {
 		return err
 	}
+	fmt.Fprintf(streams.Out, "Load fonts from %v\n", fontDir)
 
-	// load template
-	tpl, err := tgimg.LoadFromFile(templateFile)
+	c, err := tgimg.CreateCanvasFromImage(templateFile)
 	if err != nil {
 		return err
 	}
+	fmt.Fprintf(streams.Out, "Load %v template\n", templateFile)
 
-	// write template
-	dst := image.NewRGBA(tpl.Bounds())
-	draw.Draw(dst, dst.Bounds(), tpl, image.Point{}, draw.Over)
-
-	// write texts
-	dr := &font.Drawer{Dst: dst, Dot: fixed.Point26_6{}}
-
-	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleBold), &truetype.Options{Size: 72})
-	dr.Src = image.Black
-	dr.Dot.X = fixed.I(127)
-	dr.Dot.Y = fixed.I(173 + 72)
-	if err := tgimg.DrawText(dr, o.title, 946); err != nil {
+	if err := c.DrawTextAtPoint(
+		o.title,
+		127, 173,
+		tgimg.MaxWidth(946),
+		tgimg.FgColor(image.Black),
+		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleBold, 72)); err != nil {
+		return err
+	}
+	if err := c.DrawTextAtPoint(
+		strings.ToUpper(o.category),
+		130, 124,
+		tgimg.FgHexColor("#8D8D8D"),
+		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleRegular, 42)); err != nil {
+		return err
+	}
+	if err := c.DrawTextAtPoint(
+		fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2")),
+		231, 449,
+		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleRegular, 38)); err != nil {
 		return err
 	}
 
-	gray, err := tgimg.Hex("#8D8D8D")
-	if err != nil {
+	if err := c.SaveAsPNG(outputPath); err != nil {
 		return err
 	}
-	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 42})
-	dr.Src = image.NewUniform(gray)
-	dr.Dot.X = fixed.I(130)
-	dr.Dot.Y = fixed.I(124 + 42)
-	if err := tgimg.DrawText(dr, strings.ToUpper(o.category), 946); err != nil {
-		return err
-	}
-
-	info := fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2"))
-	dr.Face = truetype.NewFace(ff.GetFont(tgimg.FontStyleRegular), &truetype.Options{Size: 38})
-	dr.Dot.X = fixed.I(231)
-	dr.Dot.Y = fixed.I(449 + 38)
-	if err := tgimg.DrawText(dr, info, 946); err != nil {
-		return err
-	}
-
-	tgimg.SaveAsPNG(outputPath, dst)
+	fmt.Fprintf(streams.Out, "Save image to %v\n", outputPath)
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/font"
 )
 
 type FontStyle string
@@ -25,12 +26,15 @@ const (
 	TrueTypeFontExt = ".ttf"
 )
 
+// LoadFontFamilyFromDir loads files and return FontFamily object from the specified directory.
+// The directory name is used as a family name, and all font files in it are identified as part
+// of the same font family.  Each filename must follows this `<name>-<style>.ttf`naming rule.
 func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
 	finfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
-	fs := NewFontFamily()
+	fs := NewFontFamily(filepath.Base(dir))
 	for _, finfo := range finfos {
 		fn := finfo.Name()
 		name := fn[:len(fn)-len(filepath.Ext(fn))]
@@ -45,15 +49,20 @@ func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
 	return fs, nil
 }
 
-func NewFontFamily() *FontFamily {
-	return &FontFamily{fonts: make(map[FontStyle]*truetype.Font)}
+// NewFontFamily initialize a FontFamily object and return it.
+func NewFontFamily(name string) *FontFamily {
+	return &FontFamily{
+		Name:  name,
+		fonts: make(map[FontStyle]*truetype.Font),
+	}
 }
 
 type FontFamily struct {
+	Name  string
 	fonts map[FontStyle]*truetype.Font
 }
 
-// LoadFont loads font from a file
+// LoadFont loads TrueType font from a file.
 func (fs *FontFamily) LoadFont(filename string, style FontStyle) error {
 	if filepath.Ext(filename) != TrueTypeFontExt {
 		return fmt.Errorf("%q is not TrueTypeFont format", filepath.Base(filename))
@@ -73,6 +82,11 @@ func (fs *FontFamily) LoadFont(filename string, style FontStyle) error {
 	return nil
 }
 
-func (fs *FontFamily) GetFont(style FontStyle) *truetype.Font {
-	return fs.fonts[style]
+// NewFace creates a new font face with size option.
+func (fs *FontFamily) NewFace(style FontStyle, size float64) (font.Face, error) {
+	f, ok := fs.fonts[style]
+	if !ok {
+		return nil, fmt.Errorf("this font family does not contain %q style font", style)
+	}
+	return truetype.NewFace(f, &truetype.Options{Size: size}), nil
 }
