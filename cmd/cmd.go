@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
 	"github.com/spf13/cobra"
@@ -102,11 +103,24 @@ func (o *RootCommandOption) Complete() error {
 		return fmt.Errorf("can not get tags from front matter: %+v", cfm.FrontMatter)
 	}
 	for _, t := range tags {
-		o.tags = append(o.tags, strings.Title(t.(string)))
+		tag := t.(string)
+		if !isUpper(tag) {
+			tag = strings.Title(tag)
+		}
+		o.tags = append(o.tags, tag)
 	}
 
-	o.updatedAt, err = time.Parse("2006-01-02T15:04:05-07:00", cfm.FrontMatter["lastmod"].(string))
+	o.updatedAt = cfm.FrontMatter["lastmod"].(time.Time)
 	return err
+}
+
+func isUpper(text string) bool {
+	for _, r := range []rune(text) {
+		if !unicode.IsUpper(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func getFirstFMItem(cfm pageparser.ContentFrontMatter, key string) (string, error) {
