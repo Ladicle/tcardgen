@@ -145,20 +145,20 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 		canvas.MaxWidth(946),
 		canvas.LineSpace(10),
 		canvas.FgColor(image.Black),
-		canvas.FontFaceFromFFA(ffa, fontfamily.StyleBold, 72)); err != nil {
+		canvas.FontFaceFromFFA(ffa, fontfamily.Bold, 72)); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		strings.ToUpper(o.category),
 		126, 119,
 		canvas.FgHexColor("#8D8D8D"),
-		canvas.FontFaceFromFFA(ffa, fontfamily.StyleRegular, 42)); err != nil {
+		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 42)); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2")),
 		227, 441,
-		canvas.FontFaceFromFFA(ffa, fontfamily.StyleRegular, 38)); err != nil {
+		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 38)); err != nil {
 		return err
 	}
 

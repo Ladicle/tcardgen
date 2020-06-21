@@ -14,12 +14,12 @@ import (
 type Style string
 
 const (
-	StyleThin    = "Thin"
-	StyleLight   = "Light"
-	StyleRegular = "Regular"
-	StyleMedium  = "Medium"
-	StyleBold    = "Bold"
-	StyleBlack   = "Black"
+	Thin    = "Thin"
+	Light   = "Light"
+	Regular = "Regular"
+	Medium  = "Medium"
+	Bold    = "Bold"
+	Black   = "Black"
 )
 
 const (
