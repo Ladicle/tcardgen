@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"bytes"
 	"image"
 	"image/draw"
 
@@ -27,9 +28,11 @@ func CreateCanvasFromImage(filename string) (*Canvas, error) {
 }
 
 type Canvas struct {
-	dst      *image.RGBA
-	fdr      *font.Drawer
-	MaxWidth int
+	dst *image.RGBA
+	fdr *font.Drawer
+
+	maxWidth  int
+	lineSpace int
 }
 
 // SaveAsPNG saves this canvas as a PNG file into the specified path.
@@ -53,10 +56,59 @@ func (c *Canvas) DrawTextAtPoint(text string, x, y int, opts ...textDrawOption) 
 	c.fdr.Dot.Y = fixed.I(y) + c.fdr.Face.Metrics().Height
 	c.fdr.Dot.X = fixed.I(x)
 
-	// TODO: support max width
+	if c.maxWidth == 0 {
+		c.fdr.DrawString(text)
+		return nil
+	}
 
-	c.fdr.DrawString(text)
+	c.drawMultiLineText(text)
 	return nil
+}
+
+func (c *Canvas) drawMultiLineText(text string) {
+	var (
+		x      = c.fdr.Dot.X
+		rtext  = []rune(text)
+		length = len(rtext)
+
+		lbuf bytes.Buffer
+		wbuf bytes.Buffer
+	)
+	for i := 0; i < length; i++ {
+		r := rtext[i]
+		switch {
+		case spaceChar(r):
+			// noop
+		case oneByteChar(r) || startBracket(r):
+			wbuf.WriteRune(r)
+			if (i + 1) < length {
+				continue
+			}
+		default:
+			wbuf.WriteRune(r)
+			if (i+1) < length && endChar(rtext[i+1]) {
+				wbuf.WriteRune(rtext[i+1])
+				i++
+			}
+		}
+		lbuf.Write(wbuf.Bytes())
+
+		adv := c.fdr.MeasureBytes(lbuf.Bytes())
+		if adv <= fixed.I(c.maxWidth) {
+			wbuf.Reset()
+			if (i + 1) < length {
+				continue
+			}
+		}
+
+		c.fdr.DrawBytes(lbuf.Bytes()[:lbuf.Len()-wbuf.Len()])
+		c.fdr.Dot.X = x
+		c.fdr.Dot.Y += c.fdr.Face.Metrics().Height + fixed.I(c.lineSpace)
+
+		lbuf.Reset()
+		lbuf.Write(wbuf.Bytes())
+		wbuf.Reset()
+	}
 }
 
 type textDrawOption func(*Canvas) error
@@ -105,7 +157,15 @@ func FgHexColor(hex string) textDrawOption {
 // If the full text width exceeds the limit, drawer adds line breaks.
 func MaxWidth(max int) textDrawOption {
 	return func(c *Canvas) error {
-		c.MaxWidth = max
+		c.maxWidth = max
+		return nil
+	}
+}
+
+// LineSpace sets line space (px) of multi-line text.
+func LineSpace(px int) textDrawOption {
+	return func(c *Canvas) error {
+		c.lineSpace = px
 		return nil
 	}
 }
