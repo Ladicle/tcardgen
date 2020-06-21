@@ -1,4 +1,4 @@
-package image
+package canvas
 
 import (
 	"image"
@@ -7,6 +7,8 @@ import (
 	"github.com/google/martian/log"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
+
+	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
 )
 
 func CreateCanvasFromImage(filename string) (*Canvas, error) {
@@ -68,7 +70,7 @@ func FontFace(ff font.Face) textDrawOption {
 }
 
 // FontFaceFromFFA sets font face from FontFamily.
-func FontFaceFromFFA(ffa *FontFamily, style FontStyle, size float64) textDrawOption {
+func FontFaceFromFFA(ffa *fontfamily.FontFamily, style fontfamily.Style, size float64) textDrawOption {
 	return func(c *Canvas) error {
 		ff, err := ffa.NewFace(style, size)
 		if err != nil {

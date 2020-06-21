@@ -13,7 +13,8 @@ import (
 	"github.com/gohugoio/hugo/parser/pageparser"
 	"github.com/spf13/cobra"
 
-	tgimg "github.com/Ladicle/tcardgen/pkg/image"
+	"github.com/Ladicle/tcardgen/pkg/canvas"
+	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
 )
 
 var (
@@ -124,13 +125,13 @@ const (
 )
 
 func (o *RootCommandOption) Run(streams IOStreams) error {
-	ff, err := tgimg.LoadFontFamilyFromDir(fontDir)
+	ffa, err := fontfamily.LoadFromDir(fontDir)
 	if err != nil {
 		return err
 	}
 	fmt.Fprintf(streams.Out, "Load fonts from %v\n", fontDir)
 
-	c, err := tgimg.CreateCanvasFromImage(templateFile)
+	c, err := canvas.CreateCanvasFromImage(templateFile)
 	if err != nil {
 		return err
 	}
@@ -139,22 +140,22 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if err := c.DrawTextAtPoint(
 		o.title,
 		127, 173,
-		tgimg.MaxWidth(946),
-		tgimg.FgColor(image.Black),
-		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleBold, 72)); err != nil {
+		canvas.MaxWidth(946),
+		canvas.FgColor(image.Black),
+		canvas.FontFaceFromFFA(ffa, fontfamily.StyleBold, 72)); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		strings.ToUpper(o.category),
 		130, 124,
-		tgimg.FgHexColor("#8D8D8D"),
-		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleRegular, 42)); err != nil {
+		canvas.FgHexColor("#8D8D8D"),
+		canvas.FontFaceFromFFA(ffa, fontfamily.StyleRegular, 42)); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2")),
 		231, 449,
-		tgimg.FontFaceFromFFA(ff, tgimg.FontStyleRegular, 38)); err != nil {
+		canvas.FontFaceFromFFA(ffa, fontfamily.StyleRegular, 38)); err != nil {
 		return err
 	}
 

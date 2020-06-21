@@ -1,4 +1,4 @@
-package image
+package fontfamily
 
 import (
 	"errors"
@@ -11,25 +11,25 @@ import (
 	"golang.org/x/image/font"
 )
 
-type FontStyle string
+type Style string
 
 const (
-	FontStyleThin    = "Thin"
-	FontStyleLight   = "Light"
-	FontStyleRegular = "Regular"
-	FontStyleMedium  = "Medium"
-	FontStyleBold    = "Bold"
-	FontStyleBlack   = "Black"
+	StyleThin    = "Thin"
+	StyleLight   = "Light"
+	StyleRegular = "Regular"
+	StyleMedium  = "Medium"
+	StyleBold    = "Bold"
+	StyleBlack   = "Black"
 )
 
 const (
 	TrueTypeFontExt = ".ttf"
 )
 
-// LoadFontFamilyFromDir loads files and return FontFamily object from the specified directory.
+// LoadFromDir loads files and return FontFamily object from the specified directory.
 // The directory name is used as a family name, and all font files in it are identified as part
 // of the same font family.  Each filename must follows this `<name>-<style>.ttf`naming rule.
-func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
+func LoadFromDir(dir string) (*FontFamily, error) {
 	finfos, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
 		if len(ss) != 2 {
 			return nil, fmt.Errorf("failed to parse %q name", fn)
 		}
-		if err := fs.LoadFont(filepath.Join(dir, fn), FontStyle(ss[1])); err != nil {
+		if err := fs.LoadFont(filepath.Join(dir, fn), Style(ss[1])); err != nil {
 			return nil, err
 		}
 	}
@@ -53,17 +53,17 @@ func LoadFontFamilyFromDir(dir string) (*FontFamily, error) {
 func NewFontFamily(name string) *FontFamily {
 	return &FontFamily{
 		Name:  name,
-		fonts: make(map[FontStyle]*truetype.Font),
+		fonts: make(map[Style]*truetype.Font),
 	}
 }
 
 type FontFamily struct {
 	Name  string
-	fonts map[FontStyle]*truetype.Font
+	fonts map[Style]*truetype.Font
 }
 
 // LoadFont loads TrueType font from a file.
-func (fs *FontFamily) LoadFont(filename string, style FontStyle) error {
+func (fs *FontFamily) LoadFont(filename string, style Style) error {
 	if filepath.Ext(filename) != TrueTypeFontExt {
 		return fmt.Errorf("%q is not TrueTypeFont format", filepath.Base(filename))
 	}
@@ -83,7 +83,7 @@ func (fs *FontFamily) LoadFont(filename string, style FontStyle) error {
 }
 
 // NewFace creates a new font face with size option.
-func (fs *FontFamily) NewFace(style FontStyle, size float64) (font.Face, error) {
+func (fs *FontFamily) NewFace(style Style, size float64) (font.Face, error) {
 	f, ok := fs.fonts[style]
 	if !ok {
 		return nil, fmt.Errorf("this font family does not contain %q style font", style)
