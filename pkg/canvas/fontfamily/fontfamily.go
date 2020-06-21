@@ -37,11 +37,18 @@ func LoadFromDir(dir string) (*FontFamily, error) {
 	fs := NewFontFamily(filepath.Base(dir))
 	for _, finfo := range finfos {
 		fn := finfo.Name()
-		name := fn[:len(fn)-len(filepath.Ext(fn))]
+		ext := filepath.Ext(fn)
+		if ext != TrueTypeFontExt {
+			// skip non TTF file
+			continue
+		}
+
+		name := fn[:len(fn)-len(ext)]
 		ss := strings.Split(name, "-")
 		if len(ss) != 2 {
 			return nil, fmt.Errorf("failed to parse %q name", fn)
 		}
+
 		if err := fs.LoadFont(filepath.Join(dir, fn), Style(ss[1])); err != nil {
 			return nil, err
 		}
