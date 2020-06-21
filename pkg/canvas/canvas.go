@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/draw"
 
-	"github.com/google/martian/log"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 
@@ -46,10 +45,6 @@ func (c *Canvas) DrawTextAtPoint(text string, x, y int, opts ...textDrawOption) 
 		if err := f(c); err != nil {
 			return err
 		}
-	}
-
-	if c.fdr.Face == nil {
-		log.Errorf("Face is nil: %+v", c.fdr)
 	}
 
 	// dot.y points baseline of text
