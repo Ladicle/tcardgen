@@ -88,6 +88,13 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	fmt.Fprintf(streams.Out, "Load %v template\n", o.tplImg)
 
+	if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
+		err := os.Mkdir(o.outDir, 0755)
+		if err != nil {
+			return err
+		}
+	}
+
 	var errCnt int
 	for _, f := range o.files {
 		base := filepath.Base(f)
