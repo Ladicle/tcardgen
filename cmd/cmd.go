@@ -61,8 +61,8 @@ func NewRootCmd() *cobra.Command {
 			return opt.Run(streams)
 		},
 	}
-	cmd.Flags().StringVarP(&opt.fontDir, "font", "f", defaultFontDir, "Set a font directory.")
-	cmd.Flags().StringVarP(&opt.outDir, "out", "o", defaultOutDir, "Set an output directory.")
+	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
+	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", defaultOutDir, "Set an output directory.")
 	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", defaultTplImg, "Set a template image file.")
 	return cmd
 }
@@ -126,6 +126,11 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		return err
 	}
 
+	var tags []string
+	for _, t := range fm.Tags {
+		tags = append(tags, strings.Title(t))
+	}
+
 	if err := c.DrawTextAtPoint(
 		fm.Title,
 		123, 165,
@@ -143,13 +148,13 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		return err
 	}
 	if err := c.DrawTextAtPoint(
-		fmt.Sprintf("%s・%s", fm.Author, fm.LastMod.Format("Jan 2")),
+		fmt.Sprintf("%s・%s", fm.Author, fm.Date.Format("Jan 2")),
 		227, 441,
 		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 38)); err != nil {
 		return err
 	}
 	if err := c.DrawBoxTexts(
-		fm.Tags,
+		tags,
 		1025, 451,
 		canvas.FgColor(image.White),
 		canvas.BgHexColor("#60BCE0"),

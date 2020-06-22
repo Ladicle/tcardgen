@@ -1,13 +1,22 @@
 package hugo
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"time"
-	"unicode"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
+)
+
+const (
+	fmTitle      = "title"
+	fmAuthor     = "author"
+	fmCategories = "categories"
+	fmTags       = "tags"
+
+	fmDate        = "date"        // priority high
+	fmLastmod     = "lastmod"     // priority middle
+	fmPublishDate = "publishDate" // priority low
 )
 
 type FrontMatter struct {
@@ -15,7 +24,7 @@ type FrontMatter struct {
 	Author   string
 	Category string
 	Tags     []string
-	LastMod  time.Time
+	Date     time.Time
 }
 
 // ParseFrontMatter parses the frontmatter of the specified Hugo content.
@@ -31,58 +40,99 @@ func ParseFrontMatter(filename string) (*FrontMatter, error) {
 		return nil, err
 	}
 
-	var ok bool
 	fm := &FrontMatter{}
-
-	if fm.Title, ok = cfm.FrontMatter["title"].(string); !ok {
-		return nil, fmt.Errorf("can not convert title to string: %+v", cfm.FrontMatter)
-	} else if fm.Title == "" {
-		return nil, fmt.Errorf("title is empty: %+v", cfm.FrontMatter)
-	}
-
-	if fm.Author, err = getFirstFMItem(cfm, "author"); err != nil {
+	if fm.Title, err = getString(&cfm, fmTitle); err != nil {
 		return nil, err
 	}
-
-	if fm.Category, err = getFirstFMItem(cfm, "categories"); err != nil {
+	if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
 		return nil, err
 	}
-
-	tags, ok := cfm.FrontMatter["tags"].([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("can not convert tags to interface{} array: %+v", cfm.FrontMatter)
-	} else if len(tags) == 0 {
-		return nil, fmt.Errorf("there is no tags: %+v", tags)
+	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
+		return nil, err
 	}
-	for _, t := range tags {
-		tag := t.(string)
-		if !isUpper(tag) {
-			tag = strings.Title(tag)
-		}
-		fm.Tags = append(fm.Tags, tag)
+	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
+		return nil, err
 	}
-
-	fm.LastMod = cfm.FrontMatter["lastmod"].(time.Time)
+	if fm.Date, err = getContentDate(&cfm); err != nil {
+		return nil, err
+	}
 
 	return fm, nil
 }
 
-func getFirstFMItem(cfm pageparser.ContentFrontMatter, key string) (string, error) {
-	categoriesitems, ok := cfm.FrontMatter[key].([]interface{})
-	if !ok {
-		return "", fmt.Errorf("can not convert %s to interface{} array: %+v", key, cfm.FrontMatter)
+func getContentDate(cfm *pageparser.ContentFrontMatter) (time.Time, error) {
+	for _, key := range []string{fmDate, fmLastmod, fmPublishDate} {
+		t, err := getTime(cfm, key)
+		if err != nil {
+			switch err.(type) {
+			case *FMNotExistError:
+				continue
+			}
+		}
+		return t, err
 	}
-	if len(categoriesitems) < 1 {
-		return "", fmt.Errorf("can not get %s from front matter: %+v", key, cfm.FrontMatter)
-	}
-	return categoriesitems[0].(string), nil
+	return time.Now(), NewFMNotExistError(
+		strings.Join([]string{fmDate, fmLastmod, fmPublishDate}, ", "))
 }
 
-func isUpper(text string) bool {
-	for _, r := range []rune(text) {
-		if !unicode.IsUpper(r) {
-			return false
-		}
+func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error) {
+	v, ok := cfm.FrontMatter[fmKey]
+	if !ok {
+		return time.Now(), NewFMNotExistError(fmKey)
 	}
-	return true
+	switch t := v.(type) {
+	case string:
+		return time.Parse(time.RFC3339, t)
+	case time.Time:
+		return t, nil
+	default:
+		return time.Now(), NewFMInvalidTypeError(fmKey, "time.Time or string", t)
+	}
+}
+
+func getString(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error) {
+	v, ok := cfm.FrontMatter[fmKey]
+	if !ok {
+		return "", NewFMNotExistError(fmKey)
+	}
+
+	switch s := v.(type) {
+	case string:
+		return s, nil
+	default:
+		return "", NewFMInvalidTypeError(fmKey, "string", s)
+	}
+}
+
+func getAllStringItems(cfm *pageparser.ContentFrontMatter, fmKey string) ([]string, error) {
+	v, ok := cfm.FrontMatter[fmKey]
+	if !ok {
+		return nil, NewFMNotExistError(fmKey)
+	}
+
+	switch arr := v.(type) {
+	case []interface{}:
+		if len(arr) < 1 {
+			return nil, NewFMNotExistError(fmKey)
+		}
+
+		var strarr []string
+		for _, item := range arr {
+			switch s := item.(type) {
+			case string:
+				strarr = append(strarr, s)
+			default:
+				return nil, NewFMInvalidTypeError(fmKey, "string", s)
+			}
+		}
+		return strarr, nil
+
+	default:
+		return nil, NewFMInvalidTypeError(fmKey, "[]interface{}", arr)
+	}
+}
+
+func getFirstStringItem(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error) {
+	arr, err := getAllStringItems(cfm, fmKey)
+	return arr[0], err
 }
