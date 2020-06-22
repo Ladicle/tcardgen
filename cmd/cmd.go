@@ -6,15 +6,20 @@ import (
 	"image"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
-	"time"
-	"unicode"
 
-	"github.com/gohugoio/hugo/parser/pageparser"
 	"github.com/spf13/cobra"
 
 	"github.com/Ladicle/tcardgen/pkg/canvas"
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
+	"github.com/Ladicle/tcardgen/pkg/hugo"
+)
+
+const (
+	defaultTplImg  = "template.png"
+	defaultFontDir = "font"
+	defaultOutDir  = "out"
 )
 
 var (
@@ -30,20 +35,16 @@ type IOStreams struct {
 }
 
 type RootCommandOption struct {
-	Filename   string
-	ConfigPath string
-
-	title     string
-	author    string
-	category  string
-	tags      []string
-	updatedAt time.Time
+	files   []string
+	fontDir string
+	outDir  string
+	tplImg  string
 }
 
 func NewRootCmd() *cobra.Command {
 	opt := RootCommandOption{}
 	cmd := &cobra.Command{
-		Use:                   "tcardgen [-c <CONFIGURATION>] <FILENAME>",
+		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] <FILE>...",
 		Version:               version,
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
@@ -57,101 +58,69 @@ func NewRootCmd() *cobra.Command {
 			if err := opt.Validate(cmd, args); err != nil {
 				return err
 			}
-			if err := opt.Complete(); err != nil {
-				return err
-			}
 			return opt.Run(streams)
 		},
 	}
-	cmd.Flags().StringVarP(&opt.ConfigPath, "config", "c", "config.tcard.yaml", "Set tcardgen configuration path.")
+	cmd.Flags().StringVarP(&opt.fontDir, "font", "f", defaultFontDir, "Set a font directory.")
+	cmd.Flags().StringVarP(&opt.outDir, "out", "o", defaultOutDir, "Set an output directory.")
+	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", defaultTplImg, "Set a template image file.")
 	return cmd
 }
 
 func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("required argument <FILENAME> is not set")
+		return errors.New("required argument <FILE> is not set")
 	}
-	o.Filename = args[0]
+	o.files = args
 	return nil
 }
 
-func (o *RootCommandOption) Complete() error {
-	// TODO: Load configuration
-
-	file, err := os.Open(o.Filename)
-	if err != nil {
-		return err
-	}
-	cfm, err := pageparser.ParseFrontMatterAndContent(file)
-
-	title := cfm.FrontMatter["title"].(string)
-	if title == "" {
-		return fmt.Errorf("can not get title from front matter: %+v", cfm.FrontMatter)
-	}
-	o.title = title
-
-	if o.author, err = getFirstFMItem(cfm, "author"); err != nil {
-		return err
-	}
-
-	if o.category, err = getFirstFMItem(cfm, "categories"); err != nil {
-		return err
-	}
-
-	tags := cfm.FrontMatter["tags"].([]interface{})
-	if len(tags) < 1 {
-		return fmt.Errorf("can not get tags from front matter: %+v", cfm.FrontMatter)
-	}
-	for _, t := range tags {
-		tag := t.(string)
-		if !isUpper(tag) {
-			tag = strings.Title(tag)
-		}
-		o.tags = append(o.tags, tag)
-	}
-
-	o.updatedAt = cfm.FrontMatter["lastmod"].(time.Time)
-	return err
-}
-
-func isUpper(text string) bool {
-	for _, r := range []rune(text) {
-		if !unicode.IsUpper(r) {
-			return false
-		}
-	}
-	return true
-}
-
-func getFirstFMItem(cfm pageparser.ContentFrontMatter, key string) (string, error) {
-	categoriesitems := cfm.FrontMatter[key].([]interface{})
-	if len(categoriesitems) < 1 {
-		return "", fmt.Errorf("can not get %s from front matter: %+v", key, cfm.FrontMatter)
-	}
-	return categoriesitems[0].(string), nil
-}
-
-const (
-	fontDir      = "font"
-	templateFile = "template.png"
-	outputPath   = "thumbnail.png"
-)
-
 func (o *RootCommandOption) Run(streams IOStreams) error {
-	ffa, err := fontfamily.LoadFromDir(fontDir)
+	ffa, err := fontfamily.LoadFromDir(o.fontDir)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out, "Load fonts from %v\n", fontDir)
+	fmt.Fprintf(streams.Out, "Load fonts from %v\n", o.fontDir)
 
-	c, err := canvas.CreateCanvasFromImage(templateFile)
+	tpl, err := canvas.LoadFromFile(o.tplImg)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out, "Load %v template\n", templateFile)
+	fmt.Fprintf(streams.Out, "Load %v template\n", o.tplImg)
+
+	var errCnt int
+	for _, f := range o.files {
+		base := filepath.Base(f)
+		name := base[:len(base)-len(filepath.Ext(base))]
+		out := filepath.Join(o.outDir, fmt.Sprintf("%s.png", name))
+
+		if err := generateTCard(f, out, tpl, ffa); err != nil {
+			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
+			errCnt++
+			continue
+		}
+		fmt.Fprintf(streams.Out, "Success to generate twitter card into %v\n", out)
+	}
+
+	if errCnt != 0 {
+		return fmt.Errorf("failed to generate %d twitter cards", errCnt)
+	}
+	return nil
+}
+
+func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily) error {
+	fm, err := hugo.ParseFrontMatter(contentPath)
+	if err != nil {
+		return err
+	}
+
+	c, err := canvas.CreateCanvasFromImage(tpl)
+	if err != nil {
+		return err
+	}
 
 	if err := c.DrawTextAtPoint(
-		o.title,
+		fm.Title,
 		123, 165,
 		canvas.MaxWidth(946),
 		canvas.LineSpace(10),
@@ -160,20 +129,20 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
-		strings.ToUpper(o.category),
+		strings.ToUpper(fm.Category),
 		126, 119,
 		canvas.FgHexColor("#8D8D8D"),
 		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 42)); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
-		fmt.Sprintf("%s・%s", o.author, o.updatedAt.Format("Jan 2")),
+		fmt.Sprintf("%s・%s", fm.Author, fm.LastMod.Format("Jan 2")),
 		227, 441,
 		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 38)); err != nil {
 		return err
 	}
 	if err := c.DrawBoxTexts(
-		o.tags,
+		fm.Tags,
 		1025, 451,
 		canvas.FgColor(image.White),
 		canvas.BgHexColor("#60BCE0"),
@@ -184,9 +153,5 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 		return err
 	}
 
-	if err := c.SaveAsPNG(outputPath); err != nil {
-		return err
-	}
-	fmt.Fprintf(streams.Out, "Save image to %v\n", outputPath)
-	return nil
+	return c.SaveAsPNG(outPath)
 }

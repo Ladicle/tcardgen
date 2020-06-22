@@ -12,11 +12,7 @@ import (
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
 )
 
-func CreateCanvasFromImage(filename string) (*Canvas, error) {
-	tpl, err := LoadFromFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func CreateCanvasFromImage(tpl image.Image) (*Canvas, error) {
 	// draw background image
 	dst := image.NewRGBA(tpl.Bounds())
 	draw.Draw(dst, dst.Bounds(), tpl, image.Point{}, draw.Src)
