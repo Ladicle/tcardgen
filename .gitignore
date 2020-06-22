@@ -3,3 +3,4 @@ tcardgen
 # resources
 *.png
 *.ttf
+!example/*.png
