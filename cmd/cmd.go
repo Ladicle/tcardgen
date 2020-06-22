@@ -20,6 +20,14 @@ const (
 	defaultTplImg  = "template.png"
 	defaultFontDir = "font"
 	defaultOutDir  = "out"
+
+	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
+Supported front-matters are title, author, categories, tags, and date.`
+	example = `# Generate a image and output to the example directory.
+tcardgen --fontDir=font --outDir=example --template=example/template.png example/blog-post.md
+
+# Generate multiple images.
+tcardgen --template=example/template.png example/*.md`
 )
 
 var (
@@ -49,7 +57,9 @@ func NewRootCmd() *cobra.Command {
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
 		SilenceErrors:         true,
-		Short:                 "Generate twitter card image from the Hugo post.",
+		Short:                 "Generate TwitterCard(OGP) image for your Hugo posts.",
+		Long:                  longDesc,
+		Example:               example,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			streams := IOStreams{
 				Out:    os.Stdout,
