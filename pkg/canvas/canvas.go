@@ -81,21 +81,21 @@ func (c *Canvas) drawMultiLineText(text string) {
 	)
 	for i := 0; i < length; i++ {
 		r := rtext[i]
+
+		wbuf.WriteRune(r)
+
 		switch {
 		case spaceChar(r):
 			// noop
 		case oneByteChar(r) || startBracket(r):
-			wbuf.WriteRune(r)
 			if (i + 1) < length {
 				continue
 			}
-		default:
-			wbuf.WriteRune(r)
-			if (i+1) < length && endChar(rtext[i+1]) {
-				wbuf.WriteRune(rtext[i+1])
-				i++
-			}
+		case (i+1) < length && endChar(rtext[i+1]):
+			wbuf.WriteRune(rtext[i+1])
+			i++
 		}
+
 		lbuf.Write(wbuf.Bytes())
 
 		adv := c.fdr.MeasureBytes(lbuf.Bytes())
