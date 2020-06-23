@@ -28,6 +28,21 @@ $ tcardgen -f path/to/fontDir \
 
 After successfully executing the command, a PNG image with the same name as the specified content name is generated in the output directory.
 
+## Advanced Generation
+
+If you want to change the color, style, or position of text, you can pass a configuration file with the `--config(-c)` option.
+Refer to the `example/template3.config.yaml` to see how to configure it.
+
+```
+$ tcardgen -c example/template3.config.yaml example/blog-post2.md
+Load fonts from "font"
+Load template from "example/template3.png" directory
+Success to generate twitter card into out/blog-post2.png
+```
+
+### Result
+<img src="./example/template3-config-output.png" width="300">
+
 ## Usage
 
 ```

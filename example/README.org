@@ -1,0 +1,24 @@
+* Example
+** Posts
+
+- [[file:blog-post.md][blog-post.md]] :: YAML, Japanese
+- [[file:blog-post2.md][blog-post2.md]] :: TOML, English
+
+** Templates
+
+*** Template1
+
+[[file:template.png]]
+
+*** Template2
+
+[[file:template2.png]]
+
+*** Template3
+
+[[file:template3.png]]
+
+*** Config
+
+- [[file:template3.config.yaml][template3.config.yaml]]
+

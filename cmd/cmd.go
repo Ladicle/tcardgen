@@ -13,11 +13,11 @@ import (
 
 	"github.com/Ladicle/tcardgen/pkg/canvas"
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
+	"github.com/Ladicle/tcardgen/pkg/config"
 	"github.com/Ladicle/tcardgen/pkg/hugo"
 )
 
 const (
-	defaultTplImg  = "template.png"
 	defaultFontDir = "font"
 	defaultOutDir  = "out"
 
@@ -27,7 +27,10 @@ Supported front-matters are title, author, categories, tags, and date.`
 tcardgen --fontDir=font --outDir=example --template=example/template.png example/blog-post.md
 
 # Generate multiple images.
-tcardgen --template=example/template.png example/*.md`
+tcardgen --template=example/template.png example/*.md
+
+# Genrate an image based on the drawing configuration.
+tcardgen --config=config.yaml example/*.md`
 )
 
 var (
@@ -47,12 +50,13 @@ type RootCommandOption struct {
 	fontDir string
 	outDir  string
 	tplImg  string
+	config  string
 }
 
 func NewRootCmd() *cobra.Command {
 	opt := RootCommandOption{}
 	cmd := &cobra.Command{
-		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] <FILE>...",
+		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...",
 		Version:               version,
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
@@ -73,7 +77,8 @@ func NewRootCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
 	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", defaultOutDir, "Set an output directory.")
-	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", defaultTplImg, "Set a template image file.")
+	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", "", fmt.Sprintf("Set a template image file. (default %s)", config.DefaultTemplate))
+	cmd.Flags().StringVarP(&opt.config, "config", "c", "", "Set a drawing configuration file.")
 	return cmd
 }
 
@@ -90,13 +95,22 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out, "Load fonts from %v\n", o.fontDir)
+	fmt.Fprintf(streams.Out, "Load fonts from %q\n", o.fontDir)
 
-	tpl, err := canvas.LoadFromFile(o.tplImg)
+	cnf := &config.DrawingConfig{}
+	if o.config != "" {
+		cnf, err = config.LoadConfig(o.config)
+		if err != nil {
+			return err
+		}
+	}
+	config.Defaulting(cnf, o.tplImg)
+
+	tpl, err := canvas.LoadFromFile(cnf.Template)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(streams.Out, "Load %v template\n", o.tplImg)
+	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
 	if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
 		err := os.Mkdir(o.outDir, 0755)
@@ -111,7 +125,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 		name := base[:len(base)-len(filepath.Ext(base))]
 		out := filepath.Join(o.outDir, fmt.Sprintf("%s.png", name))
 
-		if err := generateTCard(f, out, tpl, ffa); err != nil {
+		if err := generateTCard(f, out, tpl, ffa, cnf); err != nil {
 			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
 			errCnt++
 			continue
@@ -125,7 +139,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	return nil
 }
 
-func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily) error {
+func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig) error {
 	fm, err := hugo.ParseFrontMatter(contentPath)
 	if err != nil {
 		return err
@@ -143,35 +157,40 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 
 	if err := c.DrawTextAtPoint(
 		fm.Title,
-		123, 165,
-		canvas.MaxWidth(946),
-		canvas.LineSpacing(10),
-		canvas.FgColor(image.Black),
-		canvas.FontFaceFromFFA(ffa, fontfamily.Bold, 72)); err != nil {
+		*cnf.Title.Start,
+		canvas.MaxWidth(cnf.Title.MaxWidth),
+		canvas.LineSpacing(*cnf.Title.LineSpacing),
+		canvas.FgHexColor(cnf.Title.FgHexColor),
+		canvas.FontFaceFromFFA(ffa, cnf.Title.FontStyle, cnf.Title.FontSize),
+	); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		strings.ToUpper(fm.Category),
-		126, 119,
-		canvas.FgHexColor("#8D8D8D"),
-		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 42)); err != nil {
+		*cnf.Category.Start,
+		canvas.FgHexColor(cnf.Category.FgHexColor),
+		canvas.FontFaceFromFFA(ffa, cnf.Category.FontStyle, cnf.Category.FontSize),
+	); err != nil {
 		return err
 	}
 	if err := c.DrawTextAtPoint(
 		fmt.Sprintf("%s・%s", fm.Author, fm.Date.Format("Jan 2")),
-		227, 441,
-		canvas.FontFaceFromFFA(ffa, fontfamily.Regular, 38)); err != nil {
+		*cnf.Info.Start,
+		canvas.FgHexColor(cnf.Info.FgHexColor),
+		canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
+	); err != nil {
 		return err
 	}
 	if err := c.DrawBoxTexts(
 		tags,
-		1025, 451,
-		canvas.FgColor(image.White),
-		canvas.BgHexColor("#60BCE0"),
-		canvas.BoxPadding(6, 10, 6, 10),
-		canvas.BoxSpacing(6),
-		canvas.BoxAlign(canvas.AlineRight),
-		canvas.FontFaceFromFFA(ffa, fontfamily.Medium, 22)); err != nil {
+		*cnf.Tags.Start,
+		canvas.FgHexColor(cnf.Tags.FgHexColor),
+		canvas.BgHexColor(cnf.Tags.BgHexColor),
+		canvas.BoxPadding(*cnf.Tags.BoxPadding),
+		canvas.BoxSpacing(*cnf.Tags.BoxSpacing),
+		canvas.BoxAlign(cnf.Tags.BoxAlign),
+		canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
+	); err != nil {
 		return err
 	}
 

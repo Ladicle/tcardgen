@@ -9,7 +9,9 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 
+	"github.com/Ladicle/tcardgen/pkg/canvas/box"
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
+	"github.com/Ladicle/tcardgen/pkg/config"
 )
 
 func CreateCanvasFromImage(tpl image.Image) (*Canvas, error) {
@@ -23,21 +25,16 @@ func CreateCanvasFromImage(tpl image.Image) (*Canvas, error) {
 	}, nil
 }
 
-const (
-	AlineLeft = iota
-	AlineRight
-)
-
 type Canvas struct {
 	dst *image.RGBA
 	fdr *font.Drawer
 
-	bgColor                          *image.Uniform
-	maxWidth                         int
-	lineSpace                        int
-	bpTop, bpRight, bpBottom, bpLeft int
-	boxSpace                         int
-	boxAlign                         int
+	bgColor    *image.Uniform
+	maxWidth   int
+	lineSpace  int
+	boxPadding config.Padding
+	boxSpace   int
+	boxAlign   box.Align
 }
 
 // SaveAsPNG saves this canvas as a PNG file into the specified path.
@@ -46,7 +43,7 @@ func (c *Canvas) SaveAsPNG(filename string) error {
 }
 
 // DrawTextAtPoint draws text on this canvas at the specified point.
-func (c *Canvas) DrawTextAtPoint(text string, x, y int, opts ...textDrawOption) error {
+func (c *Canvas) DrawTextAtPoint(text string, start config.Point, opts ...textDrawOption) error {
 	for _, f := range opts {
 		if err := f(c); err != nil {
 			return err
@@ -54,8 +51,8 @@ func (c *Canvas) DrawTextAtPoint(text string, x, y int, opts ...textDrawOption) 
 	}
 
 	// dot.y points baseline of text
-	c.fdr.Dot.Y = fixed.I(y) + c.fdr.Face.Metrics().Height
-	c.fdr.Dot.X = fixed.I(x)
+	c.fdr.Dot.Y = fixed.I(start.Y) + c.fdr.Face.Metrics().Height
+	c.fdr.Dot.X = fixed.I(start.X)
 
 	if c.maxWidth == 0 {
 		c.fdr.DrawString(text)
@@ -112,32 +109,32 @@ func (c *Canvas) drawMultiLineText(text string) {
 	}
 }
 
-func (c *Canvas) DrawBoxTexts(texts []string, x, y int, opts ...textDrawOption) error {
+func (c *Canvas) DrawBoxTexts(texts []string, start config.Point, opts ...textDrawOption) error {
 	for _, f := range opts {
 		if err := f(c); err != nil {
 			return err
 		}
 	}
 
-	p := image.Pt(x, y)
-	if c.boxAlign == AlineRight {
+	p := image.Pt(start.X, start.Y)
+	if c.boxAlign == box.AlignRight {
 		n := len(texts)
-		p.X -= c.bpLeft*n + c.bpRight*n + c.boxSpace*(n-1) +
+		p.X -= c.boxPadding.Left*n + c.boxPadding.Right*n + c.boxSpace*(n-1) +
 			c.fdr.MeasureString(strings.Join(texts, "")).Round()
 	}
 
 	fm := c.fdr.Face.Metrics()
 	fh := fm.Height
-	rect := image.Rect(0, y, 0, y+fh.Round()+c.bpTop+c.bpBottom+fm.Descent.Round())
+	rect := image.Rect(0, start.Y, 0, start.Y+fh.Round()+c.boxPadding.Top+c.boxPadding.Bottom+fm.Descent.Round())
 
 	for _, s := range texts {
 		fw := c.fdr.MeasureString(s)
 		rect.Min.X = p.X
-		rect.Max.X = p.X + fw.Round() + c.bpLeft + c.bpRight
+		rect.Max.X = p.X + fw.Round() + c.boxPadding.Left + c.boxPadding.Right
 		draw.Draw(c.dst, rect, c.bgColor, p, draw.Src)
 
-		c.fdr.Dot.X = fixed.I(p.X + c.bpLeft)
-		c.fdr.Dot.Y = fixed.I(p.Y+c.bpTop-1) + fh
+		c.fdr.Dot.X = fixed.I(p.X + c.boxPadding.Left)
+		c.fdr.Dot.Y = fixed.I(p.Y+c.boxPadding.Top-1) + fh
 		c.fdr.DrawString(s)
 
 		p.X = rect.Max.X + c.boxSpace
@@ -225,12 +222,9 @@ func LineSpacing(px int) textDrawOption {
 }
 
 // BoxPadding sets box padding(px).
-func BoxPadding(t, r, b, l int) textDrawOption {
+func BoxPadding(bp config.Padding) textDrawOption {
 	return func(c *Canvas) error {
-		c.bpTop = t
-		c.bpRight = r
-		c.bpBottom = b
-		c.bpLeft = l
+		c.boxPadding = bp
 		return nil
 	}
 }
@@ -244,7 +238,7 @@ func BoxSpacing(px int) textDrawOption {
 }
 
 // BoxAlign sets box align.
-func BoxAlign(align int) textDrawOption {
+func BoxAlign(align box.Align) textDrawOption {
 	return func(c *Canvas) error {
 		c.boxAlign = align
 		return nil
