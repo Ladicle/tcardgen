@@ -8,7 +8,7 @@ Also, both toml and yaml formats are supported.
 
 ## Installation
 
-```
+```bash
 go get github.com/Ladicle/tcardgen
 ```
 
@@ -19,7 +19,7 @@ go get github.com/Ladicle/tcardgen
 3. Create template image (The easyest way is to replace the author image of the template in the [example](./example) directory.)
 4. Run the following command
 
-```
+```bash
 $ tcardgen -f path/to/fontDir \
            -o path/to/hugo/static/imgDir \
            -t path/to/templateFile \
@@ -33,7 +33,7 @@ After successfully executing the command, a PNG image with the same name as the 
 If you want to change the color, style, or position of text, you can pass a configuration file with the `--config(-c)` option.
 Refer to the `example/template3.config.yaml` to see how to configure it.
 
-```
+```bash
 $ tcardgen -c example/template3.config.yaml example/blog-post2.md
 Load fonts from "font"
 Load template from "example/template3.png" directory
@@ -43,9 +43,27 @@ Success to generate twitter card into out/blog-post2.png
 ### Result
 <img src="./example/template3-config-output.png" width="300">
 
+## GOP setting for Hugo Theme
+
+On my blog, I place the generated images in the `static/tcard` directory. In order to load this image, I set the following OGP information for my blog theme.
+If the thumbnail is defined in the post, it is used first. Otherwise, the generated Twitter Card is used. If the page is not blog post, to set the default image.
+
+```html
+<!-- General -->
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:type" content="{{ if .IsHome }}website{{ else }}article{{ end }}" />
+<meta property="og:site_name" content="{{ .Site.Title }}" />
+<meta property="og:title" content="{{ .Title }}" />
+<meta property="og:description" content="{{ with .Description -}}{{ . }}{{ else -}}{{ if .IsPage }}{{ substr .Summary 0 300 }}{{ else }}{{ with .Site.Params.description }}{{ . }}{{ end }}{{ end }}{{ end }}" />
+<meta property="og:image" content="{{ if .Params.thumbnail -}}{{ .Params.thumbnail|absURL }}{{ else if hasPrefix .File.Path "post" -}}{{ path.Join "tcard" (print .File.BaseFileName ".png") | absURL }}{{ else -}}{{ "img/default.png" | absURL }}{{ end -}}" />
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@{{ .Site.Params.twitterName }}" />
+```
+
 ## Usage
 
-```
+```bash
 $ tcardgen -h
 Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.
