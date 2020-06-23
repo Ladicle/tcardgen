@@ -35,8 +35,8 @@ Refer to the [example/template3.config.yaml](example/template3.config.yaml) to s
 
 ```bash
 $ tcardgen -c example/template3.config.yaml example/blog-post2.md
-Load fonts from "font"L
-oad template from "example/template3.png" directory
+Load fonts from "font" directory
+Load template from "example/template3.png"
 Success to generate twitter card into out/blog-post2.png
 ```
 
@@ -79,7 +79,7 @@ Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.
 
 Usage:
-  tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] <FILE>...
+  tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...
 
 Examples:
 # Generate a image and output to the example directory.
@@ -88,9 +88,13 @@ tcardgen --fontDir=font --outDir=example --template=example/template.png example
 # Generate multiple images.
 tcardgen --template=example/template.png example/*.md
 
+# Genrate an image based on the drawing configuration.
+tcardgen --config=config.yaml example/*.md
+
 Flags:
+  -c, --config string     Set a drawing configuration file.
   -f, --fontDir string    Set a font directory. (default "font")
   -h, --help              help for tcardgen
   -o, --outDir string     Set an output directory. (default "out")
-  -t, --template string   Set a template image file. (default "template.png")
+  -t, --template string   Set a template image file. (default example/template.png)
 ```
