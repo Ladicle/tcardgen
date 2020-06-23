@@ -31,12 +31,12 @@ After successfully executing the command, a PNG image with the same name as the 
 ## Advanced Generation
 
 If you want to change the color, style, or position of text, you can pass a configuration file with the `--config(-c)` option.
-Refer to the `example/template3.config.yaml` to see how to configure it.
+Refer to the [example/template3.config.yaml](example/template3.config.yaml) to see how to configure it.
 
 ```bash
 $ tcardgen -c example/template3.config.yaml example/blog-post2.md
-Load fonts from "font"
-Load template from "example/template3.png" directory
+Load fonts from "font"L
+oad template from "example/template3.png" directory
 Success to generate twitter card into out/blog-post2.png
 ```
 
