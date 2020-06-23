@@ -217,7 +217,7 @@ func MaxWidth(max int) textDrawOption {
 }
 
 // LineSpace sets line space(px) of multi-line text.
-func LineSpace(px int) textDrawOption {
+func LineSpacing(px int) textDrawOption {
 	return func(c *Canvas) error {
 		c.lineSpace = px
 		return nil

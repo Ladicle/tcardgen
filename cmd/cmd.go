@@ -145,7 +145,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		fm.Title,
 		123, 165,
 		canvas.MaxWidth(946),
-		canvas.LineSpace(10),
+		canvas.LineSpacing(10),
 		canvas.FgColor(image.Black),
 		canvas.FontFaceFromFFA(ffa, fontfamily.Bold, 72)); err != nil {
 		return err
