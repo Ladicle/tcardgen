@@ -61,6 +61,16 @@ If the thumbnail is defined in the post, it is used first. Otherwise, the genera
 <meta name="twitter:site" content="@{{ .Site.Params.twitterName }}" />
 ```
 
+### Generate images of updated articles
+
+You can generate only the image of the updated article by using `git diff` and `tcardgen`.
+
+```bash
+$ git diff --name-only HEAD content/post |\
+    xargs tcardgen -o static/tcard -f assets/fonts/kinto-sans -t assets/template.png
+```
+
+
 ## Usage
 
 ```bash
