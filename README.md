@@ -1,6 +1,8 @@
 # Twitter Card Image Generator
 
-Generate Twitter card image for your blog posts.
+Generate Twitter card (OGP) images for your blog posts.
+Supported front-matters are title, author, categories, tags, and date.
+Also, both toml and yaml formats are supported.
 
 ![sample](./example/blog-post2.png)
 
@@ -9,6 +11,22 @@ Generate Twitter card image for your blog posts.
 ```
 go get github.com/Ladicle/tcardgen
 ```
+
+## Getting Started
+
+1. Install `tcardgen` command
+2. Download your favorite TrueType fonts (the above sample use [KintoSans](https://github.com/ookamiinc/kinto))
+3. Create template image (The easyest way is to replace the author image of the template in the [example](./example) directory.)
+4. Run the following command
+
+```
+$ tcardgen -f path/to/fontDir \
+           -o path/to/hugo/static/imgDir \
+           -t path/to/templateFile \
+           path/to/hugo/content/posts/*.md
+```
+
+After successfully executing the command, a PNG image with the same name as the specified content name is generated in the output directory.
 
 ## Usage
 
