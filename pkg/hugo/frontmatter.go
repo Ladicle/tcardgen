@@ -134,5 +134,9 @@ func getAllStringItems(cfm *pageparser.ContentFrontMatter, fmKey string) ([]stri
 
 func getFirstStringItem(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error) {
 	arr, err := getAllStringItems(cfm, fmKey)
-	return arr[0], err
+	if err != nil {
+		return "", err
+	}
+
+	return arr[0], nil
 }
