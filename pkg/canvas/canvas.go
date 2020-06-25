@@ -107,6 +107,10 @@ func (c *Canvas) drawMultiLineText(text string) {
 		lbuf.Write(wbuf.Bytes())
 		wbuf.Reset()
 	}
+
+	if len(lbuf.Bytes()) != 0 {
+		c.fdr.DrawBytes(lbuf.Bytes()[:lbuf.Len()-wbuf.Len()])
+	}
 }
 
 func (c *Canvas) DrawBoxTexts(texts []string, start config.Point, opts ...textDrawOption) error {
