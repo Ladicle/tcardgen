@@ -1,6 +1,7 @@
 package hugo
 
 import (
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -98,6 +99,9 @@ func getString(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error)
 
 	switch s := v.(type) {
 	case string:
+		if s == "" {
+			return "", NewFMNotExistError(fmKey)
+		}
 		return s, nil
 	default:
 		return "", NewFMInvalidTypeError(fmKey, "string", s)
@@ -112,18 +116,19 @@ func getAllStringItems(cfm *pageparser.ContentFrontMatter, fmKey string) ([]stri
 
 	switch arr := v.(type) {
 	case []interface{}:
-		if len(arr) < 1 {
-			return nil, NewFMNotExistError(fmKey)
-		}
-
 		var strarr []string
 		for _, item := range arr {
 			switch s := item.(type) {
 			case string:
-				strarr = append(strarr, s)
+				if s != "" {
+					strarr = append(strarr, s)
+				}
 			default:
 				return nil, NewFMInvalidTypeError(fmKey, "string", s)
 			}
+		}
+		if len(strarr) < 1 {
+			return nil, NewFMNotExistError(fmKey)
 		}
 		return strarr, nil
 
@@ -137,6 +142,5 @@ func getFirstStringItem(cfm *pageparser.ContentFrontMatter, fmKey string) (strin
 	if err != nil {
 		return "", err
 	}
-
 	return arr[0], nil
 }
