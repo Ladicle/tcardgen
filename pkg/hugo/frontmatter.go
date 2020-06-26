@@ -36,7 +36,11 @@ func ParseFrontMatter(filename string) (*FrontMatter, error) {
 	}
 	defer file.Close()
 
-	cfm, err := pageparser.ParseFrontMatterAndContent(file)
+	return parseFrontMatter(file)
+}
+
+func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
+	cfm, err := pageparser.ParseFrontMatterAndContent(r)
 	if err != nil {
 		return nil, err
 	}
