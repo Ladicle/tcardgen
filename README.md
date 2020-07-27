@@ -19,7 +19,18 @@ go get github.com/Ladicle/tcardgen
 3. Create template image (The easyest way is to replace the author image of the template in the [example](./example) directory.)
 4. Run the following command
 
+> **NOTE**: `tcardgen` parses a font style from the file name,
+> so the font file must follow the naming rule (`<name>-<style>.ttf`), and arrange font files as follows:
+
 ```bash
+$ tree font/
+font/
+├── KintoSans-Bold.ttf
+├── KintoSans-Medium.ttf
+└── KintoSans-Regular.ttf
+
+0 directories, 3 files
+
 $ tcardgen -f path/to/fontDir \
            -o path/to/hugo/static/imgDir \
            -t path/to/templateFile \
