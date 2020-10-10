@@ -24,7 +24,10 @@ const (
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.`
 	example = `# Generate a image and output to the example directory.
-tcardgen --fontDir=font --outDir=example --template=example/template.png example/blog-post.md
+tcardgen --fontDir=font --output=example --template=example/template.png example/blog-post.md
+
+# Generate a image and output to the example directory as "featured.png".
+tcardgen --fontDir=font --output=example/featured.png --template=example/template.png example/blog-post.md
 
 # Generate multiple images.
 tcardgen --template=example/template.png example/*.md
