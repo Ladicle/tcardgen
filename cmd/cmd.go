@@ -120,22 +120,36 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
-	if o.outDir != "" {
-		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
+	outDir := defaultOutput
+	outFilename := ""
+	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
 
-		if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
-			err := os.Mkdir(o.outDir, 0755)
-			if err != nil {
-				return err
-			}
+	if o.output != defaultOutput {
+		outDir = o.output
+		if isSpecifiedOutputFilename {
+			splitOutput := strings.Split(o.output, "/")
+			outFilename = splitOutput[len(splitOutput)-1]
+			outDir = o.output[0 : len(o.output)-len(outFilename)]
+		}
+	} else if o.outDir != "" {
+		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
+		outDir = o.outDir
+	}
+
+	if _, err := os.Stat(outDir); os.IsNotExist(err) {
+		err := os.Mkdir(outDir, 0755)
+		if err != nil {
+			return err
 		}
 	}
 
 	var errCnt int
 	for _, f := range o.files {
 		base := filepath.Base(f)
-		name := base[:len(base)-len(filepath.Ext(base))]
-		out := filepath.Join(o.outDir, fmt.Sprintf("%s.png", name))
+		if !isSpecifiedOutputFilename {
+			outFilename = base[:len(base)-len(filepath.Ext(base))] + ".png"
+		}
+		out := filepath.Join(outDir, outFilename)
 
 		if err := generateTCard(f, out, tpl, ffa, cnf); err != nil {
 			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
