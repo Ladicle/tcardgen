@@ -19,7 +19,6 @@ import (
 
 const (
 	defaultFontDir = "font"
-	defaultOutDir  = "out"
 
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.`
@@ -76,7 +75,7 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
-	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", defaultOutDir, "Set an output directory.")
+	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", "", "(DEPRECATED) Set an output directory.")
 	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", "", fmt.Sprintf("Set a template image file. (default %s)", config.DefaultTemplate))
 	cmd.Flags().StringVarP(&opt.config, "config", "c", "", "Set a drawing configuration file.")
 	return cmd
@@ -112,10 +111,14 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
-	if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
-		err := os.Mkdir(o.outDir, 0755)
-		if err != nil {
-			return err
+	if o.outDir != "" {
+		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
+
+		if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
+			err := os.Mkdir(o.outDir, 0755)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
