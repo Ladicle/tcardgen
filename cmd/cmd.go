@@ -19,6 +19,7 @@ import (
 
 const (
 	defaultFontDir = "font"
+	defaultOutput  = "out"
 
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.`
@@ -48,6 +49,7 @@ type RootCommandOption struct {
 	files   []string
 	fontDir string
 	outDir  string
+	output  string
 	tplImg  string
 	config  string
 }
@@ -55,7 +57,7 @@ type RootCommandOption struct {
 func NewRootCmd() *cobra.Command {
 	opt := RootCommandOption{}
 	cmd := &cobra.Command{
-		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...",
+		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTPUT>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...",
 		Version:               version,
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
@@ -75,7 +77,8 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
-	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", "", "(DEPRECATED) Set an output directory.")
+	cmd.Flags().StringVarP(&opt.outDir, "outDir", "", "", "(DEPRECATED) Set an output directory.")
+	cmd.Flags().StringVarP(&opt.output, "output", "o", defaultOutput, "Set an output directory or filename (only png format).")
 	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", "", fmt.Sprintf("Set a template image file. (default %s)", config.DefaultTemplate))
 	cmd.Flags().StringVarP(&opt.config, "config", "c", "", "Set a drawing configuration file.")
 	return cmd
