@@ -41,6 +41,9 @@ var (
 	command string
 	version string
 	commit  string
+
+	// isSpecifiedOutputFilename is true when user specify the output file's name
+	isSpecifiedOutputFilename bool
 )
 
 type IOStreams struct {
@@ -92,7 +95,7 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 		return errors.New("required argument <FILE> is not set")
 	}
 
-	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
+	isSpecifiedOutputFilename = strings.HasSuffix(o.output, ".png")
 	if isSpecifiedOutputFilename && len(args) > 1 {
 		return errors.New("cannot accept multiple <FILE>s when you specify output filename")
 	}
@@ -125,7 +128,6 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 
 	outDir := defaultOutput
 	outFilename := ""
-	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
 
 	if o.output != defaultOutput {
 		outDir = o.output
