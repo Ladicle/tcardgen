@@ -88,6 +88,12 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("required argument <FILE> is not set")
 	}
+
+	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
+	if isSpecifiedOutputFilename && len(args) > 1 {
+		return errors.New("cannot accept multiple <FILE>s when you specify output filename")
+	}
+
 	o.files = args
 	return nil
 }
