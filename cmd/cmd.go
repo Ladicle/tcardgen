@@ -148,8 +148,8 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 
 	var errCnt int
 	for _, f := range o.files {
-		base := filepath.Base(f)
 		if !isSpecifiedOutputFilename {
+			base := filepath.Base(f)
 			outFilename = base[:len(base)-len(filepath.Ext(base))] + ".png"
 		}
 		out := filepath.Join(outDir, outFilename)
