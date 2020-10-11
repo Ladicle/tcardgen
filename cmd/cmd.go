@@ -132,9 +132,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if o.output != defaultOutput {
 		outDir = o.output
 		if isSpecifiedOutputFilename {
-			splitOutput := strings.Split(o.output, "/")
-			outFilename = splitOutput[len(splitOutput)-1]
-			outDir = o.output[0 : len(o.output)-len(outFilename)]
+			outDir, outFilename = filepath.Split(o.output)
 		}
 	} else if o.outDir != "" {
 		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
