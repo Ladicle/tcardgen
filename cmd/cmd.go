@@ -42,7 +42,7 @@ var (
 	version string
 	commit  string
 
-	// isSpecifiedOutputFilename is true when user specify the output file's name
+	// isSpecifiedOutputFilename is true when the user specifies the name of the output file
 	isSpecifiedOutputFilename bool
 )
 
