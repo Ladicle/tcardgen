@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultFontDir = "font"
-	defaultOutput  = "out"
+	defaultOutput  = "out/"
 
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.`
@@ -41,9 +41,6 @@ var (
 	command string
 	version string
 	commit  string
-
-	// isSpecifiedOutputFilename is true when the user specifies the name of the output file
-	isSpecifiedOutputFilename bool
 )
 
 type IOStreams struct {
@@ -95,9 +92,12 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 		return errors.New("required argument <FILE> is not set")
 	}
 
-	isSpecifiedOutputFilename = strings.HasSuffix(o.output, ".png")
+	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
 	if isSpecifiedOutputFilename && len(args) > 1 {
 		return errors.New("cannot accept multiple <FILE>s when you specify output filename")
+	} else if !isSpecifiedOutputFilename && o.output != defaultOutput {
+		// "/" suffix is needed to correctly split directory and filename by filepath.Split()
+		o.output += "/"
 	}
 
 	o.files = args
@@ -126,15 +126,8 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
-	outDir := defaultOutput
-	outFilename := ""
-
-	if o.output != defaultOutput {
-		outDir = o.output
-		if isSpecifiedOutputFilename {
-			outDir, outFilename = filepath.Split(o.output)
-		}
-	} else if o.outDir != "" {
+	outDir, outFilename := filepath.Split(o.output)
+	if o.output == defaultOutput && o.outDir != "" {
 		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
 		outDir = o.outDir
 	}
@@ -148,11 +141,11 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 
 	var errCnt int
 	for _, f := range o.files {
-		if !isSpecifiedOutputFilename {
-			base := filepath.Base(f)
-			outFilename = base[:len(base)-len(filepath.Ext(base))] + ".png"
-		}
 		out := filepath.Join(outDir, outFilename)
+		if outFilename == "" {
+			base := filepath.Base(f)
+			out += fmt.Sprintf("/%s.png", base[:len(base)-len(filepath.Ext(base))])
+		}
 
 		if err := generateTCard(f, out, tpl, ffa, cnf); err != nil {
 			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
