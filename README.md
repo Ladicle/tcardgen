@@ -90,11 +90,14 @@ Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.
 
 Usage:
-  tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...
+  tcardgen [-f <FONTDIR>] [-o <OUTPUT>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...
 
 Examples:
 # Generate a image and output to the example directory.
-tcardgen --fontDir=font --outDir=example --template=example/template.png example/blog-post.md
+tcardgen --fontDir=font --output=example --template=example/template.png example/blog-post.md
+
+# Generate a image and output to the example directory as "featured.png".
+tcardgen --fontDir=font --output=example/featured.png --template=example/template.png example/blog-post.md
 
 # Generate multiple images.
 tcardgen --template=example/template.png example/*.md
@@ -106,6 +109,7 @@ Flags:
   -c, --config string     Set a drawing configuration file.
   -f, --fontDir string    Set a font directory. (default "font")
   -h, --help              help for tcardgen
-  -o, --outDir string     Set an output directory. (default "out")
+      --outDir string     (DEPRECATED) Set an output directory.
+  -o, --output string     Set an output directory or filename (only png format). (default "out")
   -t, --template string   Set a template image file. (default example/template.png)
 ```

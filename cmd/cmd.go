@@ -19,12 +19,15 @@ import (
 
 const (
 	defaultFontDir = "font"
-	defaultOutDir  = "out"
+	defaultOutput  = "out/"
 
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
 Supported front-matters are title, author, categories, tags, and date.`
 	example = `# Generate a image and output to the example directory.
-tcardgen --fontDir=font --outDir=example --template=example/template.png example/blog-post.md
+tcardgen --fontDir=font --output=example --template=example/template.png example/blog-post.md
+
+# Generate a image and output to the example directory as "featured.png".
+tcardgen --fontDir=font --output=example/featured.png --template=example/template.png example/blog-post.md
 
 # Generate multiple images.
 tcardgen --template=example/template.png example/*.md
@@ -49,6 +52,7 @@ type RootCommandOption struct {
 	files   []string
 	fontDir string
 	outDir  string
+	output  string
 	tplImg  string
 	config  string
 }
@@ -56,7 +60,7 @@ type RootCommandOption struct {
 func NewRootCmd() *cobra.Command {
 	opt := RootCommandOption{}
 	cmd := &cobra.Command{
-		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTDIR>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...",
+		Use:                   "tcardgen [-f <FONTDIR>] [-o <OUTPUT>] [-t <TEMPLATE>] [-c <CONFIG>] <FILE>...",
 		Version:               version,
 		DisableFlagsInUseLine: true,
 		SilenceUsage:          true,
@@ -76,7 +80,8 @@ func NewRootCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
-	cmd.Flags().StringVarP(&opt.outDir, "outDir", "o", defaultOutDir, "Set an output directory.")
+	cmd.Flags().StringVarP(&opt.outDir, "outDir", "", "", "(DEPRECATED) Set an output directory.")
+	cmd.Flags().StringVarP(&opt.output, "output", "o", defaultOutput, "Set an output directory or filename (only png format).")
 	cmd.Flags().StringVarP(&opt.tplImg, "template", "t", "", fmt.Sprintf("Set a template image file. (default %s)", config.DefaultTemplate))
 	cmd.Flags().StringVarP(&opt.config, "config", "c", "", "Set a drawing configuration file.")
 	return cmd
@@ -86,6 +91,15 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return errors.New("required argument <FILE> is not set")
 	}
+
+	isSpecifiedOutputFilename := strings.HasSuffix(o.output, ".png")
+	if isSpecifiedOutputFilename && len(args) > 1 {
+		return errors.New("cannot accept multiple <FILE>s when you specify output filename")
+	} else if !isSpecifiedOutputFilename && o.output != defaultOutput {
+		// "/" suffix is needed to correctly split directory and filename by filepath.Split()
+		o.output += "/"
+	}
+
 	o.files = args
 	return nil
 }
@@ -112,8 +126,14 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
-	if _, err := os.Stat(o.outDir); os.IsNotExist(err) {
-		err := os.Mkdir(o.outDir, 0755)
+	outDir, outFilename := filepath.Split(o.output)
+	if o.output == defaultOutput && o.outDir != "" {
+		fmt.Fprint(streams.Out, "\nWarning: This flag will be removed in the future. Please use \"--output\".\n\n")
+		outDir = o.outDir
+	}
+
+	if _, err := os.Stat(outDir); os.IsNotExist(err) {
+		err := os.Mkdir(outDir, 0755)
 		if err != nil {
 			return err
 		}
@@ -121,9 +141,11 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 
 	var errCnt int
 	for _, f := range o.files {
-		base := filepath.Base(f)
-		name := base[:len(base)-len(filepath.Ext(base))]
-		out := filepath.Join(o.outDir, fmt.Sprintf("%s.png", name))
+		out := filepath.Join(outDir, outFilename)
+		if outFilename == "" {
+			base := filepath.Base(f)
+			out += fmt.Sprintf("/%s.png", base[:len(base)-len(filepath.Ext(base))])
+		}
 
 		if err := generateTCard(f, out, tpl, ffa, cnf); err != nil {
 			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
