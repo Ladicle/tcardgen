@@ -49,8 +49,14 @@ func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
 	if fm.Title, err = getString(&cfm, fmTitle); err != nil {
 		return nil, err
 	}
-	if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
-		return nil, err
+	if isArray := isArray(&cfm, fmAuthor); isArray {
+		if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
+			return nil, err
+		}
+	} else {
+		if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
+			return nil, err
+		}
 	}
 	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
 		return nil, err
@@ -147,4 +153,13 @@ func getFirstStringItem(cfm *pageparser.ContentFrontMatter, fmKey string) (strin
 		return "", err
 	}
 	return arr[0], nil
+}
+
+func isArray(cfm *pageparser.ContentFrontMatter, fmKey string) bool {
+	switch v := cfm.FrontMatter[fmKey]; v.(type) {
+	case []interface{}:
+		return true
+	default:
+		return false
+	}
 }
