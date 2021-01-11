@@ -54,7 +54,7 @@ Success to generate twitter card into out/blog-post2.png
 ### Result
 <img src="./example/template3-config-output.png" width="300">
 
-## GOP setting for Hugo Theme
+## OGP setting for Hugo Theme
 
 On my blog, I place the generated images in the `static/tcard` directory. In order to load this image, I set the following OGP information for my blog theme.
 If the thumbnail is defined in the post, it is used first. Otherwise, the generated Twitter Card is used. If the page is not blog post, to set the default image.
