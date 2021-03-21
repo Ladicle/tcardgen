@@ -29,6 +29,7 @@ var defaultCnf = DrawingConfig{
 		FgHexColor: "#8D8D8D",
 		FontSize:   38,
 		FontStyle:  fontfamily.Regular,
+		Separator:  "・",
 	},
 	Tags: &BoxTextsOption{
 		TextOption: TextOption{
@@ -123,6 +124,9 @@ func setArgsAsDefaultTextOption(to *TextOption, dto *TextOption) {
 	}
 	if to.FontStyle == "" {
 		to.FontStyle = dto.FontStyle
+	}
+	if to.Separator == "" {
+		to.Separator = dto.Separator
 	}
 }
 
