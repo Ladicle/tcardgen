@@ -22,6 +22,7 @@ info:
   fgHexColor: "#A0A0A0"
   fontSize: 38
   fontStyle: Regular
+  separator: " - "
 tags:
   start:
     px: 120

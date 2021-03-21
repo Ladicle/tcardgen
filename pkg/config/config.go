@@ -18,6 +18,7 @@ type TextOption struct {
 	FgHexColor string           `json:"fgHexColor,omitempty"`
 	FontSize   float64          `json:"fontSize,omitempty"`
 	FontStyle  fontfamily.Style `json:"fontStyle,omitempty"`
+	Separator  string           `json:"separator,omitempty"`
 }
 
 type MultiLineTextOption struct {
