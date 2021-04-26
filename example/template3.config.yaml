@@ -2,7 +2,7 @@ template: example/template3.png
 title:
   start:
     px: 113
-    pY: 252
+    py: 252
   fgHexColor: "#FFFFFF"
   fontSize: 72
   fontStyle: Bold
