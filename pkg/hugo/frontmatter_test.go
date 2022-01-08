@@ -30,7 +30,7 @@ content`,
 				Author:   "@Ladicle",
 				Category: "program",
 				Tags:     []string{"hugo", "go", "OGP"},
-				Date:     mustParseRFC3339("2020-06-21T03:56:24+09:00"),
+				Date:     mustParseRFC3339(t, "2020-06-21T03:56:24+09:00"),
 			},
 		},
 		{
@@ -38,7 +38,7 @@ content`,
 			input: `+++
 title = "HugoでもTwitterCardを自動生成したい"
 author = ["@Ladicle"]
-date = 2020-06-21T03:56:24+09:00
+date = "2020-06-21T03:56:24+09:00"
 tags = ["hugo", "go", "OGP"]
 categories = ["program"]
 +++
@@ -48,7 +48,7 @@ content`,
 				Author:   "@Ladicle",
 				Category: "program",
 				Tags:     []string{"hugo", "go", "OGP"},
-				Date:     mustParseRFC3339("2020-06-21T03:56:24+09:00"),
+				Date:     mustParseRFC3339(t, "2020-06-21T03:56:24+09:00"),
 			},
 		},
 		{
@@ -121,7 +121,7 @@ tags = ["tag1"]
 					if tc.expectErr.Error() == err.Error() {
 						return
 					}
-					t.Fatalf("parseFrontMatter() returns unexpected error: got=%+v, want=%+v",
+					t.Fatalf("parseFrontMatter() returns unexpected error: got=%#+v, want=%#+v",
 						err, tc.expectErr)
 				}
 				t.Fatalf("failed to parse front matter: %v", err)
@@ -130,17 +130,17 @@ tags = ["tag1"]
 				t.Fatalf("expect to occur %+v error but it didn't", tc.expectErr)
 			}
 			if !reflect.DeepEqual(fm, tc.expectFM) {
-				t.Fatalf("parseFrontMatter() returns unexpected value: got=%+v, want=%+v",
+				t.Fatalf("parseFrontMatter() returns unexpected value: got=%#+v, want=%#+v",
 					*fm, *tc.expectFM)
 			}
 		})
 	}
 }
 
-func mustParseRFC3339(t string) time.Time {
-	tt, err := time.Parse(time.RFC3339, t)
+func mustParseRFC3339(t *testing.T, timeStr string) time.Time {
+	tt, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
 	}
 	return tt
 }
