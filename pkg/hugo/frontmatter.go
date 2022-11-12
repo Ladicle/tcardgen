@@ -49,18 +49,18 @@ func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
 	if fm.Title, err = getString(&cfm, fmTitle); err != nil {
 		return nil, err
 	}
-	if isArray := isArray(&cfm, fmAuthor); isArray {
-		if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
-			return nil, err
-		}
-	} else {
-		if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
-			return nil, err
-		}
-	}
-	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
-		return nil, err
-	}
+	// if isArray := isArray(&cfm, fmAuthor); isArray {
+	// 	if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
+	// 		return nil, err
+	// 	}
+	// } else {
+	// 	if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+	// if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
+	// 	return nil, err
+	// }
 	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
 		return nil, err
 	}
