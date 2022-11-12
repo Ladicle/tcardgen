@@ -11,13 +11,13 @@ Also, both toml and yaml formats are supported.
 ### Go version < 1.16
 
 ```bash
-go get github.com/Ladicle/tcardgen@latest
+go get github.com/hmajid2301/tcardgen@latest
 ```
 
 ### Go 1.16+
 
 ```bash
-go install github.com/Ladicle/tcardgen@latest
+go install github.com/hmajid2301/tcardgen@latest
 ```
 
 ## Getting Started
