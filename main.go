@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/Ladicle/tcardgen/cmd"
+	"github.com/mathieu-gilloots/tcardgen/cmd"
 )
 
 func init() {
