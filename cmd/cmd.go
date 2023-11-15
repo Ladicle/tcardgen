@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/Ladicle/tcardgen/pkg/canvas"
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
@@ -174,8 +176,10 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 	}
 
 	var tags []string
+	// TODO: it would probably be useful to make this configurable
+	caser := cases.Title(language.English)
 	for _, t := range fm.Tags {
-		tags = append(tags, strings.Title(t))
+		tags = append(tags, caser.String(t))
 	}
 
 	if err := c.DrawTextAtPoint(
