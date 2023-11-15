@@ -11,6 +11,7 @@ type DrawingConfig struct {
 	Category *TextOption          `json:"category,omitempty"`
 	Info     *TextOption          `json:"info,omitempty"`
 	Tags     *BoxTextsOption      `json:"tags,omitempty"`
+	Defaults *DefaultOptions      `json:"defaults,omitempty"`
 }
 
 type TextOption struct {
@@ -33,6 +34,10 @@ type BoxTextsOption struct {
 	BoxPadding *Padding  `json:"boxPadding,omitempty"`
 	BoxSpacing *int      `json:"boxSpacing,omitempty"`
 	BoxAlign   box.Align `json:"boxAlign,omitempty"`
+}
+
+type DefaultOptions struct {
+	Author string `json:"author,omitempty"`
 }
 
 type Point struct {

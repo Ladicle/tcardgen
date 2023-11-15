@@ -43,6 +43,8 @@ var defaultCnf = DrawingConfig{
 		BoxSpacing: ptrInt(6),
 		BoxAlign:   box.AlignRight,
 	},
+	Defaults: &DefaultOptions{
+	},
 }
 
 func Defaulting(cnf *DrawingConfig, tplImg string) {

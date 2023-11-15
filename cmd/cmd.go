@@ -170,6 +170,13 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		return fmt.Errorf("failed to parse front matter of %q: %w", contentPath, err)
 	}
 
+	if fm.Author == "" {
+		fm.Author = cnf.Defaults.Author
+	}
+	if fm.Author == "" {
+		return fmt.Errorf("author of %q is not set and no default author provided", contentPath)
+	}
+
 	c, err := canvas.CreateCanvasFromImage(tpl)
 	if err != nil {
 		return fmt.Errorf("failed to create canvas: %w", err)
