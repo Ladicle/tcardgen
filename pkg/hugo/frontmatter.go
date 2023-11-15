@@ -78,6 +78,12 @@ func getContentDate(cfm *pageparser.ContentFrontMatter) (time.Time, error) {
 		strings.Join([]string{fmDate, fmLastmod, fmPublishDate}, ", "))
 }
 
+var acceptedTimeFormats = [...]string{
+	time.RFC3339,
+	time.DateTime,
+	time.DateOnly,
+}
+
 func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error) {
 	v, ok := cfm.FrontMatter[fmKey]
 	if !ok {
@@ -85,7 +91,13 @@ func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error
 	}
 	switch t := v.(type) {
 	case string:
-		return time.Parse(time.RFC3339, t)
+		for _, format := range acceptedTimeFormats {
+			tt, err := time.Parse(format, t)
+			if err == nil {
+				return tt, nil
+			}
+		}
+		return time.Now(), NewFMNotExistError(fmKey)
 	case time.Time:
 		return t, nil
 	default:
