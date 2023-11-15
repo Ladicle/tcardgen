@@ -58,12 +58,8 @@ func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
 			return nil, err
 		}
 	}
-	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
-		return nil, err
-	}
-	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
-		return nil, err
-	}
+	fm.Category, _ = getFirstStringItem(&cfm, fmCategories)
+	fm.Tags, _ = getAllStringItems(&cfm, fmTags)
 	if fm.Date, err = getContentDate(&cfm); err != nil {
 		return nil, err
 	}

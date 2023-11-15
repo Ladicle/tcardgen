@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -185,7 +186,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.FgHexColor(cnf.Title.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Title.FontStyle, cnf.Title.FontSize),
 	); err != nil {
-		return err
+		return fmt.Errorf("failed to draw title: %v", err)
 	}
 	if err := c.DrawTextAtPoint(
 		strings.ToUpper(fm.Category),
@@ -193,7 +194,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.FgHexColor(cnf.Category.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Category.FontStyle, cnf.Category.FontSize),
 	); err != nil {
-		return err
+		log.Printf("failed to draw category: %v", err)
 	}
 	if err := c.DrawTextAtPoint(
 		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format("Jan 2")),
@@ -201,7 +202,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.FgHexColor(cnf.Info.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
 	); err != nil {
-		return err
+		return fmt.Errorf("failed to draw author/date info: %v", err)
 	}
 	if err := c.DrawBoxTexts(
 		tags,
@@ -213,7 +214,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.BoxAlign(cnf.Tags.BoxAlign),
 		canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
 	); err != nil {
-		return err
+		log.Printf("failed to draw tags: %v", err)
 	}
 
 	return c.SaveAsPNG(outPath)
