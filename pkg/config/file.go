@@ -1,13 +1,13 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/ghodss/yaml"
 )
 
 func LoadConfig(filename string) (*DrawingConfig, error) {
-	f, err := ioutil.ReadFile(filename)
+	f, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
