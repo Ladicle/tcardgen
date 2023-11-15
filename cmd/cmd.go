@@ -133,7 +133,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 
 	if _, err := os.Stat(outDir); os.IsNotExist(err) {
-		err := os.Mkdir(outDir, 0755)
+		err := os.Mkdir(outDir, 0o755)
 		if err != nil {
 			return err
 		}
