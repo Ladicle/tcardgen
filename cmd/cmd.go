@@ -77,7 +77,7 @@ func NewRootCmd() *cobra.Command {
 				ErrOut: os.Stderr,
 			}
 			if err := opt.Validate(cmd, args); err != nil {
-				return err
+				return fmt.Errorf("failed to validate options: %w", err)
 			}
 			return opt.Run(streams)
 		},
@@ -110,7 +110,7 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 func (o *RootCommandOption) Run(streams IOStreams) error {
 	ffa, err := fontfamily.LoadFromDir(o.fontDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load font family: %w", err)
 	}
 	fmt.Fprintf(streams.Out, "Load fonts from %q\n", o.fontDir)
 
@@ -118,14 +118,14 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if o.config != "" {
 		cnf, err = config.LoadConfig(o.config)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to load config file %q: %w", o.config, err)
 		}
 	}
 	config.Defaulting(cnf, o.tplImg)
 
 	tpl, err := canvas.LoadFromFile(cnf.Template)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load template %q: %w", cnf.Template, err)
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
@@ -138,7 +138,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if _, err := os.Stat(outDir); os.IsNotExist(err) {
 		err := os.Mkdir(outDir, 0o755)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create output directory %q: %w", outDir, err)
 		}
 	}
 
@@ -167,12 +167,12 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig) error {
 	fm, err := hugo.ParseFrontMatter(contentPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse front matter of %q: %w", contentPath, err)
 	}
 
 	c, err := canvas.CreateCanvasFromImage(tpl)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create canvas: %w", err)
 	}
 
 	var tags []string
