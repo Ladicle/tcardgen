@@ -37,7 +37,8 @@ type BoxTextsOption struct {
 }
 
 type DefaultOptions struct {
-	Author string `json:"author,omitempty"`
+	Author     string `json:"author,omitempty"`
+	DateFormat string `json:"dateFormat,omitempty"`
 }
 
 type Point struct {

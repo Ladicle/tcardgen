@@ -44,6 +44,7 @@ var defaultCnf = DrawingConfig{
 		BoxAlign:   box.AlignRight,
 	},
 	Defaults: &DefaultOptions{
+		DateFormat: "Jan 2",
 	},
 }
 
