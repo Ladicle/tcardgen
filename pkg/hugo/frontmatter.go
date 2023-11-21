@@ -49,21 +49,13 @@ func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
 	if fm.Title, err = getString(&cfm, fmTitle); err != nil {
 		return nil, err
 	}
-	if isArray := isArray(&cfm, fmAuthor); isArray {
-		if fm.Author, err = getFirstStringItem(&cfm, fmAuthor); err != nil {
-			return nil, err
-		}
+	if isArray(&cfm, fmAuthor) {
+		fm.Author, _ = getFirstStringItem(&cfm, fmAuthor)
 	} else {
-		if fm.Author, err = getString(&cfm, fmAuthor); err != nil {
-			return nil, err
-		}
+		fm.Author, _ = getString(&cfm, fmAuthor)
 	}
-	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
-		return nil, err
-	}
-	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
-		return nil, err
-	}
+	fm.Category, _ = getFirstStringItem(&cfm, fmCategories)
+	fm.Tags, _ = getAllStringItems(&cfm, fmTags)
 	if fm.Date, err = getContentDate(&cfm); err != nil {
 		return nil, err
 	}
@@ -86,6 +78,12 @@ func getContentDate(cfm *pageparser.ContentFrontMatter) (time.Time, error) {
 		strings.Join([]string{fmDate, fmLastmod, fmPublishDate}, ", "))
 }
 
+var acceptedTimeFormats = [...]string{
+	time.RFC3339,
+	time.DateTime,
+	time.DateOnly,
+}
+
 func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error) {
 	v, ok := cfm.FrontMatter[fmKey]
 	if !ok {
@@ -93,7 +91,13 @@ func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error
 	}
 	switch t := v.(type) {
 	case string:
-		return time.Parse(time.RFC3339, t)
+		for _, format := range acceptedTimeFormats {
+			tt, err := time.Parse(format, t)
+			if err == nil {
+				return tt, nil
+			}
+		}
+		return time.Now(), NewFMNotExistError(fmKey)
 	case time.Time:
 		return t, nil
 	default:

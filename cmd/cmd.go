@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/Ladicle/tcardgen/pkg/canvas"
 	"github.com/Ladicle/tcardgen/pkg/canvas/fontfamily"
@@ -74,7 +77,7 @@ func NewRootCmd() *cobra.Command {
 				ErrOut: os.Stderr,
 			}
 			if err := opt.Validate(cmd, args); err != nil {
-				return err
+				return fmt.Errorf("failed to validate options: %w", err)
 			}
 			return opt.Run(streams)
 		},
@@ -107,7 +110,7 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 func (o *RootCommandOption) Run(streams IOStreams) error {
 	ffa, err := fontfamily.LoadFromDir(o.fontDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load font family: %w", err)
 	}
 	fmt.Fprintf(streams.Out, "Load fonts from %q\n", o.fontDir)
 
@@ -115,14 +118,14 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	if o.config != "" {
 		cnf, err = config.LoadConfig(o.config)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to load config file %q: %w", o.config, err)
 		}
 	}
 	config.Defaulting(cnf, o.tplImg)
 
 	tpl, err := canvas.LoadFromFile(cnf.Template)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load template %q: %w", cnf.Template, err)
 	}
 	fmt.Fprintf(streams.Out, "Load template from %q directory\n", cnf.Template)
 
@@ -133,9 +136,9 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	}
 
 	if _, err := os.Stat(outDir); os.IsNotExist(err) {
-		err := os.Mkdir(outDir, 0755)
+		err := os.Mkdir(outDir, 0o755)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create output directory %q: %w", outDir, err)
 		}
 	}
 
@@ -164,17 +167,26 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig) error {
 	fm, err := hugo.ParseFrontMatter(contentPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse front matter of %q: %w", contentPath, err)
+	}
+
+	if fm.Author == "" {
+		fm.Author = cnf.Defaults.Author
+	}
+	if fm.Author == "" {
+		return fmt.Errorf("author of %q is not set and no default author provided", contentPath)
 	}
 
 	c, err := canvas.CreateCanvasFromImage(tpl)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create canvas: %w", err)
 	}
 
 	var tags []string
+	// TODO: it would probably be useful to make this configurable
+	caser := cases.Title(language.English)
 	for _, t := range fm.Tags {
-		tags = append(tags, strings.Title(t))
+		tags = append(tags, caser.String(t))
 	}
 
 	if err := c.DrawTextAtPoint(
@@ -185,7 +197,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.FgHexColor(cnf.Title.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Title.FontStyle, cnf.Title.FontSize),
 	); err != nil {
-		return err
+		return fmt.Errorf("failed to draw title: %v", err)
 	}
 	if err := c.DrawTextAtPoint(
 		strings.ToUpper(fm.Category),
@@ -193,15 +205,15 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.FgHexColor(cnf.Category.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Category.FontStyle, cnf.Category.FontSize),
 	); err != nil {
-		return err
+		log.Printf("failed to draw category: %v", err)
 	}
 	if err := c.DrawTextAtPoint(
-		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format("Jan 2")),
+		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format(cnf.Defaults.DateFormat)),
 		*cnf.Info.Start,
 		canvas.FgHexColor(cnf.Info.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
 	); err != nil {
-		return err
+		return fmt.Errorf("failed to draw author/date info: %v", err)
 	}
 	if err := c.DrawBoxTexts(
 		tags,
@@ -213,7 +225,7 @@ func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily
 		canvas.BoxAlign(cnf.Tags.BoxAlign),
 		canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
 	); err != nil {
-		return err
+		log.Printf("failed to draw tags: %v", err)
 	}
 
 	return c.SaveAsPNG(outPath)

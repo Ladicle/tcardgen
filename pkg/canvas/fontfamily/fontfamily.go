@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -46,7 +47,7 @@ func LoadFromDir(dir string) (*FontFamily, error) {
 		name := fn[:len(fn)-len(ext)]
 		ss := strings.Split(name, "-")
 		if len(ss) != 2 {
-			return nil, fmt.Errorf("failed to parse %q name", fn)
+			log.Printf("failed to parse %q name as <name>-<style>.(ttf|otf)", fn)
 		}
 
 		if err := fs.LoadFont(filepath.Join(dir, fn), Style(ss[1])); err != nil {
@@ -74,7 +75,7 @@ func (fs *FontFamily) LoadFont(filename string, style Style) error {
 	if filepath.Ext(filename) != TrueTypeFontExt {
 		return fmt.Errorf("%q is not TrueTypeFont format", filepath.Base(filename))
 	}
-	fb, err := ioutil.ReadFile(filename)
+	fb, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -83,7 +84,7 @@ func (fs *FontFamily) LoadFont(filename string, style Style) error {
 		return err
 	}
 	if f == nil {
-		return errors.New("parsed font is nil")
+		return fmt.Errorf("parsed font (%s) is nil", filename)
 	}
 	fs.fonts[style] = f
 	return nil
@@ -93,7 +94,7 @@ func (fs *FontFamily) LoadFont(filename string, style Style) error {
 func (fs *FontFamily) NewFace(style Style, size float64) (font.Face, error) {
 	f, ok := fs.fonts[style]
 	if !ok {
-		return nil, fmt.Errorf("this font family does not contain %q style font", style)
+		return nil, fmt.Errorf("font family %q does not contain %q style font", fs.Name, style)
 	}
 	return truetype.NewFace(f, &truetype.Options{Size: size}), nil
 }

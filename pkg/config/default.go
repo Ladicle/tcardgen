@@ -43,6 +43,9 @@ var defaultCnf = DrawingConfig{
 		BoxSpacing: ptrInt(6),
 		BoxAlign:   box.AlignRight,
 	},
+	Defaults: &DefaultOptions{
+		DateFormat: "Jan 2",
+	},
 }
 
 func Defaulting(cnf *DrawingConfig, tplImg string) {

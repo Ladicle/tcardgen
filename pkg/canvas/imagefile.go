@@ -1,6 +1,7 @@
 package canvas
 
 import (
+	"fmt"
 	"image"
 	"image/png"
 	"os"
@@ -11,7 +12,7 @@ import (
 func LoadFromFile(filename string) (image.Image, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open file %q: %w", filename, err)
 	}
 	defer f.Close()
 	img, _, err := image.Decode(f)
@@ -22,7 +23,7 @@ func LoadFromFile(filename string) (image.Image, error) {
 func SaveAsPNG(filename string, img image.Image) error {
 	f, err := os.Create(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create file %q: %w", filename, err)
 	}
 	defer f.Close()
 	return png.Encode(f, img)
