@@ -1,12 +1,14 @@
 package hugo
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/gohugoio/hugo/parser/pageparser"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -29,17 +31,17 @@ type FrontMatter struct {
 }
 
 // ParseFrontMatter parses the frontmatter of the specified Hugo content.
-func ParseFrontMatter(filename string) (*FrontMatter, error) {
+func ParseFrontMatter(w io.Writer, filename string, currentTime time.Time) (*FrontMatter, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	return parseFrontMatter(file)
+	return parseFrontMatter(w, file, currentTime)
 }
 
-func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
+func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMatter, error) {
 	cfm, err := pageparser.ParseFrontMatterAndContent(r)
 	if err != nil {
 		return nil, err
@@ -64,16 +66,21 @@ func parseFrontMatter(r io.Reader) (*FrontMatter, error) {
 	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
 		return nil, err
 	}
-	if fm.Date, err = getContentDate(&cfm); err != nil {
+	if fm.Date, err = getContentDate(&cfm, currentTime); err != nil {
+		var fe *FMNotExistError
+		if errors.As(err, &fe) {
+			fmt.Fprintf(w, "WARN: %s\n", err.Error())
+			return fm, nil
+		}
 		return nil, err
 	}
 
 	return fm, nil
 }
 
-func getContentDate(cfm *pageparser.ContentFrontMatter) (time.Time, error) {
+func getContentDate(cfm *pageparser.ContentFrontMatter, currentTime time.Time) (time.Time, error) {
 	for _, key := range []string{fmDate, fmLastmod, fmPublishDate} {
-		t, err := getTime(cfm, key)
+		t, err := getTime(cfm, key, currentTime)
 		if err != nil {
 			switch err.(type) {
 			case *FMNotExistError:
@@ -82,14 +89,14 @@ func getContentDate(cfm *pageparser.ContentFrontMatter) (time.Time, error) {
 		}
 		return t, err
 	}
-	return time.Now(), NewFMNotExistError(
+	return currentTime, NewFMNotExistError(
 		strings.Join([]string{fmDate, fmLastmod, fmPublishDate}, ", "))
 }
 
-func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error) {
+func getTime(cfm *pageparser.ContentFrontMatter, fmKey string, currentTIme time.Time) (time.Time, error) {
 	v, ok := cfm.FrontMatter[fmKey]
 	if !ok {
-		return time.Now(), NewFMNotExistError(fmKey)
+		return currentTIme, NewFMNotExistError(fmKey)
 	}
 	switch t := v.(type) {
 	case string:
@@ -97,7 +104,7 @@ func getTime(cfm *pageparser.ContentFrontMatter, fmKey string) (time.Time, error
 	case time.Time:
 		return t, nil
 	default:
-		return time.Now(), NewFMInvalidTypeError(fmKey, "time.Time or string", t)
+		return currentTIme, NewFMInvalidTypeError(fmKey, "time.Time or string", t)
 	}
 }
 

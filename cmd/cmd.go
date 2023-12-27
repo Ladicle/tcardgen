@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -76,7 +77,7 @@ func NewRootCmd() *cobra.Command {
 			if err := opt.Validate(cmd, args); err != nil {
 				return err
 			}
-			return opt.Run(streams)
+			return opt.Run(streams, time.Now())
 		},
 	}
 	cmd.Flags().StringVarP(&opt.fontDir, "fontDir", "f", defaultFontDir, "Set a font directory.")
@@ -104,7 +105,7 @@ func (o *RootCommandOption) Validate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (o *RootCommandOption) Run(streams IOStreams) error {
+func (o *RootCommandOption) Run(streams IOStreams, currentTime time.Time) error {
 	ffa, err := fontfamily.LoadFromDir(o.fontDir)
 	if err != nil {
 		return err
@@ -147,7 +148,7 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 			out += fmt.Sprintf("/%s.png", base[:len(base)-len(filepath.Ext(base))])
 		}
 
-		if err := generateTCard(f, out, tpl, ffa, cnf); err != nil {
+		if err := generateTCard(streams, f, out, tpl, ffa, cnf, currentTime); err != nil {
 			fmt.Fprintf(streams.ErrOut, "Failed to generate twitter card for %v: %v\n", out, err)
 			errCnt++
 			continue
@@ -161,8 +162,8 @@ func (o *RootCommandOption) Run(streams IOStreams) error {
 	return nil
 }
 
-func generateTCard(contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig) error {
-	fm, err := hugo.ParseFrontMatter(contentPath)
+func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Image, ffa *fontfamily.FontFamily, cnf *config.DrawingConfig, currentTime time.Time) error {
+	fm, err := hugo.ParseFrontMatter(streams.Out, contentPath, currentTime)
 	if err != nil {
 		return err
 	}
