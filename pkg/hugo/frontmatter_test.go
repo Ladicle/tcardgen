@@ -2,6 +2,7 @@ package hugo
 
 import (
 	"errors"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -9,6 +10,8 @@ import (
 )
 
 func TestParseFrontMatterFromReader(t *testing.T) {
+	currentTime := time.Now()
+
 	testCases := []struct {
 		desc      string
 		input     string
@@ -102,20 +105,27 @@ categories = ["Program"]
 			expectErr: NewFMNotExistError(fmTags),
 		},
 		{
-			desc: "Time is missing",
+			desc: "When time is missing, default time is now",
 			input: `+++
 title = "Title"
 author = ["@Ladicle"]
 categories = ["cat11"]
 tags = ["tag1"]
 +++`,
-			expectErr: errors.New("\"date, lastmod, publishDate\" is not defined or empty"),
+			expectFM: &FrontMatter{
+				Title:    "Title",
+				Author:   "@Ladicle",
+				Category: "cat11",
+				Tags:     []string{"tag1"},
+				Date:     currentTime,
+			},
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
 			r := strings.NewReader(tc.input)
-			fm, err := parseFrontMatter(r)
+			w := os.Stdout
+			fm, err := parseFrontMatter(w, r, currentTime)
 			if err != nil {
 				if tc.expectErr != nil {
 					if tc.expectErr.Error() == err.Error() {
