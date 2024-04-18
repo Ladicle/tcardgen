@@ -1,17 +1,36 @@
 module github.com/Ladicle/tcardgen
 
-go 1.14
+go 1.22
 
 require (
 	github.com/ghodss/yaml v1.0.0
-	github.com/gohugoio/hugo v0.88.1
+	github.com/gohugoio/hugo v0.125.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/pkg/errors v0.9.1
-	github.com/rogpeppe/go-internal v1.8.1 // indirect
-	github.com/spf13/cobra v1.3.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
-	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	golang.org/x/image v0.15.0
+)
+
+require (
+	github.com/bep/godartsass v1.2.0 // indirect
+	github.com/bep/godartsass/v2 v2.0.0 // indirect
+	github.com/bep/golibsass v1.1.1 // indirect
+	github.com/clbanning/mxj/v2 v2.7.0 // indirect
+	github.com/cli/safeexec v1.0.1 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mitchellh/hashstructure v1.1.0 // indirect
+	github.com/niklasfasching/go-org v1.7.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
+	github.com/spf13/afero v1.11.0 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
+	github.com/tdewolff/parse/v2 v2.7.12 // indirect
+	github.com/yuin/goldmark v1.7.1 // indirect
+	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

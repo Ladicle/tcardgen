@@ -3,7 +3,7 @@ package fontfamily
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -30,7 +30,7 @@ const (
 // The directory name is used as a family name, and all font files in it are identified as part
 // of the same font family.  Each filename must follows this `<name>-<style>.ttf`naming rule.
 func LoadFromDir(dir string) (*FontFamily, error) {
-	finfos, err := ioutil.ReadDir(dir)
+	finfos, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (fs *FontFamily) LoadFont(filename string, style Style) error {
 	if filepath.Ext(filename) != TrueTypeFontExt {
 		return fmt.Errorf("%q is not TrueTypeFont format", filepath.Base(filename))
 	}
-	fb, err := ioutil.ReadFile(filename)
+	fb, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
