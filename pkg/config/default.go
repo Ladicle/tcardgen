@@ -30,6 +30,7 @@ var defaultCnf = DrawingConfig{
 		FontSize:   38,
 		FontStyle:  fontfamily.Regular,
 		Separator:  "・",
+		TimeFormat: "Jan 2",
 	},
 	Tags: &BoxTextsOption{
 		TextOption: TextOption{
@@ -127,6 +128,9 @@ func setArgsAsDefaultTextOption(to *TextOption, dto *TextOption) {
 	}
 	if to.Separator == "" {
 		to.Separator = dto.Separator
+	}
+	if to.TimeFormat == "" {
+		to.TimeFormat = dto.TimeFormat
 	}
 }
 

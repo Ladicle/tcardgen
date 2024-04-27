@@ -197,7 +197,7 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 		return err
 	}
 	if err := c.DrawTextAtPoint(
-		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format("Jan 2 2006")),
+		fmt.Sprintf("%s%s%s", fm.Author, cnf.Info.Separator, fm.Date.Format(cnf.Info.TimeFormat)),
 		*cnf.Info.Start,
 		canvas.FgHexColor(cnf.Info.FgHexColor),
 		canvas.FontFaceFromFFA(ffa, cnf.Info.FontStyle, cnf.Info.FontSize),
