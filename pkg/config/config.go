@@ -19,6 +19,7 @@ type TextOption struct {
 	FontSize   float64          `json:"fontSize,omitempty"`
 	FontStyle  fontfamily.Style `json:"fontStyle,omitempty"`
 	Separator  string           `json:"separator,omitempty"`
+	TimeFormat string           `json:"timeFormat,omitempty"`
 }
 
 type MultiLineTextOption struct {

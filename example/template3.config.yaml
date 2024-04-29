@@ -23,6 +23,7 @@ info:
   fontSize: 38
   fontStyle: Regular
   separator: " - "
+  timeFormat: "Jan 2"
 tags:
   start:
     px: 120
