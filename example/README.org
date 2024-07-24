@@ -20,5 +20,6 @@
 
 *** Config
 
+- [[file:default.config.yaml][default.config.yaml]]
 - [[file:template3.config.yaml][template3.config.yaml]]
 
