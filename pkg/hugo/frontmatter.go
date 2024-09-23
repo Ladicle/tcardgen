@@ -60,8 +60,14 @@ func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMa
 			return nil, err
 		}
 	}
-	if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
-		return nil, err
+	if isArray := isArray(&cfm, fmCategories); isArray {
+		if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
+			return nil, err
+		}	
+	} else {
+		if fm.Category, err = getString(&cfm, fmCategories); err != nil {
+			return nil, err
+		}
 	}
 	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
 		return nil, err
