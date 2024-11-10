@@ -8,6 +8,12 @@ Also, both toml and yaml formats are supported.
 
 ## Installation
 
+### Homebrew
+
+```bash
+brew install Ladicle/tap/tcardgen
+```
+
 ### Go version < 1.16
 
 ```bash
