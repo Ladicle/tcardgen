@@ -32,7 +32,7 @@ tags:
     px: 1025
     py: 451
   fgHexColor: "#FFFFFF"
-  bgHexColor: "#7F7776"
+  bgHexColor: "#60BCE0"
   fontSize: 22
   fontStyle: Medium
   boxAlign: Right

@@ -19,6 +19,7 @@ mkdir -p test
 for name in "blog-post" "blog-post2"; do
     echo "Test $name"
     go run main.go \
+       -c example/default.config.yaml \
        -f font \
        -o test/ \
        -t example/template.png \
