@@ -20,12 +20,14 @@ type TextOption struct {
 	FontStyle  fontfamily.Style `json:"fontStyle,omitempty"`
 	Separator  string           `json:"separator,omitempty"`
 	TimeFormat string           `json:"timeFormat,omitempty"`
+	Enabled    bool             `json:"enabled,omitempty"`
 }
 
 type MultiLineTextOption struct {
 	TextOption
 	MaxWidth    int  `json:"maxWidth,omitempty"`
 	LineSpacing *int `json:"lineSpacing,omitempty"`
+	Enabled     bool `json:"enabled,omitempty"`
 }
 
 type BoxTextsOption struct {
@@ -34,6 +36,7 @@ type BoxTextsOption struct {
 	BoxPadding *Padding  `json:"boxPadding,omitempty"`
 	BoxSpacing *int      `json:"boxSpacing,omitempty"`
 	BoxAlign   box.Align `json:"boxAlign,omitempty"`
+	Enabled    bool      `json:"enabled,omitempty"`
 }
 
 type Point struct {
