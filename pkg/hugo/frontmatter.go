@@ -22,6 +22,11 @@ const (
 	fmPublishDate = "publishDate" // priority low
 )
 
+var timeFormats = []string{
+	time.RFC3339,
+	time.DateOnly,
+}
+
 type FrontMatter struct {
 	Title    string
 	Author   string
@@ -63,7 +68,7 @@ func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMa
 	if isArray := isArray(&cfm, fmCategories); isArray {
 		if fm.Category, err = getFirstStringItem(&cfm, fmCategories); err != nil {
 			return nil, err
-		}	
+		}
 	} else {
 		if fm.Category, err = getString(&cfm, fmCategories); err != nil {
 			return nil, err
@@ -99,16 +104,21 @@ func getContentDate(cfm *pageparser.ContentFrontMatter, currentTime time.Time) (
 		strings.Join([]string{fmDate, fmLastmod, fmPublishDate}, ", "))
 }
 
-func getTime(cfm *pageparser.ContentFrontMatter, fmKey string, currentTIme time.Time) (time.Time, error) {
+func getTime(cfm *pageparser.ContentFrontMatter, fmKey string, currentTIme time.Time) (t time.Time, err error) {
 	v, ok := cfm.FrontMatter[fmKey]
 	if !ok {
 		return currentTIme, NewFMNotExistError(fmKey)
 	}
-	switch t := v.(type) {
+	switch tstr := v.(type) {
 	case string:
-		return time.Parse(time.RFC3339, t)
+		for _, layout := range timeFormats {
+			if t, err = time.Parse(layout, tstr); err == nil {
+				return t, nil
+			}
+		}
+		return currentTIme, fmt.Errorf("failed to parse time: %s, supported formats are %s", err, strings.Join(timeFormats, ", "))
 	case time.Time:
-		return t, nil
+		return tstr, nil
 	default:
 		return currentTIme, NewFMInvalidTypeError(fmKey, "time.Time or string", t)
 	}
