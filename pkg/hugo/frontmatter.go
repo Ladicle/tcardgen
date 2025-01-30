@@ -16,6 +16,7 @@ const (
 	fmAuthor     = "author"
 	fmCategories = "categories"
 	fmTags       = "tags"
+	fmSeries     = "series"
 
 	fmDate        = "date"        // priority high
 	fmLastmod     = "lastmod"     // priority middle
@@ -32,6 +33,7 @@ type FrontMatter struct {
 	Author   string
 	Category string
 	Tags     []string
+	Series   string
 	Date     time.Time
 }
 
@@ -75,6 +77,9 @@ func parseFrontMatter(w io.Writer, r io.Reader, currentTime time.Time) (*FrontMa
 		}
 	}
 	if fm.Tags, err = getAllStringItems(&cfm, fmTags); err != nil {
+		return nil, err
+	}
+	if fm.Series, err = getStringAllowEmpty(&cfm, fmSeries); err != nil {
 		return nil, err
 	}
 	if fm.Date, err = getContentDate(&cfm, currentTime); err != nil {
@@ -135,6 +140,20 @@ func getString(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error)
 		if s == "" {
 			return "", NewFMNotExistError(fmKey)
 		}
+		return s, nil
+	default:
+		return "", NewFMInvalidTypeError(fmKey, "string", s)
+	}
+}
+
+func getStringAllowEmpty(cfm *pageparser.ContentFrontMatter, fmKey string) (string, error) {
+	v, ok := cfm.FrontMatter[fmKey]
+	if !ok {
+		return "", nil
+	}
+
+	switch s := v.(type) {
+	case string:
 		return s, nil
 	default:
 		return "", NewFMInvalidTypeError(fmKey, "string", s)

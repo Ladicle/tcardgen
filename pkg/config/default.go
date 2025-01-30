@@ -47,6 +47,13 @@ var defaultCnf = DrawingConfig{
 		BoxAlign:   box.AlignRight,
 		Enabled:    true,
 	},
+	Series: &TextOption{
+		Start:      &Point{X: 126, Y: 119},
+		FgHexColor: "#8D8D8D",
+		FontSize:   42,
+		FontStyle:  fontfamily.Regular,
+		Enabled:    false,
+	},
 }
 
 func Defaulting(cnf *DrawingConfig, tplImg string) {
@@ -75,6 +82,11 @@ func Defaulting(cnf *DrawingConfig, tplImg string) {
 		cnf.Tags = &BoxTextsOption{}
 	}
 	defaultTags(cnf.Tags)
+
+	if cnf.Series == nil {
+		cnf.Series = &TextOption{}
+	}
+	defaultingSeries(cnf.Series)
 }
 
 func defaultingTitle(mto *MultiLineTextOption) {
@@ -114,6 +126,10 @@ func defaultTags(bto *BoxTextsOption) {
 	if bto.BoxAlign == "" {
 		bto.BoxAlign = defaultCnf.Tags.BoxAlign
 	}
+}
+
+func defaultingSeries(to *TextOption) {
+	setArgsAsDefaultTextOption(to, defaultCnf.Series)
 }
 
 func setArgsAsDefaultTextOption(to *TextOption, dto *TextOption) {

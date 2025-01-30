@@ -42,3 +42,12 @@ tags:
     right: 10
     bottom: 6
     left: 10
+series:
+  enabled: false
+  start:
+    px: 126
+    py: 119
+  fgHexColor: "#8D8D8D"
+  fontSize: 42
+  fontStyle: Regular
+
