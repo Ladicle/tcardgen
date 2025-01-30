@@ -17,7 +17,6 @@ var defaultCnf = DrawingConfig{
 		},
 		MaxWidth:    946,
 		LineSpacing: ptrInt(10),
-		Enabled:     true,
 	},
 	Category: &TextOption{
 		Start:      &Point{X: 126, Y: 119},
