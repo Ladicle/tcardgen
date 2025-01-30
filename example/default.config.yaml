@@ -1,6 +1,5 @@
 template: example/template.png
 title:
-  enabled: true
   start:
     px: 123
     py: 165
