@@ -23,7 +23,7 @@ const (
 	defaultOutput  = "out/"
 
 	longDesc = `Generate TwitterCard(OGP) images for your Hugo posts.
-Supported front-matters are title, author, categories, tags, and date.`
+Supported front-matters are title, author, categories, tags, series, and date.`
 	example = `# Generate a image and output to the example directory.
 tcardgen --fontDir=font --output=example --template=example/template.png example/blog-post.md
 
@@ -222,6 +222,17 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 			canvas.BoxSpacing(*cnf.Tags.BoxSpacing),
 			canvas.BoxAlign(cnf.Tags.BoxAlign),
 			canvas.FontFaceFromFFA(ffa, cnf.Tags.FontStyle, cnf.Tags.FontSize),
+		); err != nil {
+			return err
+		}
+	}
+	/* Series */
+	if cnf.Series.Enabled {
+		if err := c.DrawTextAtPoint(
+			strings.ToUpper(fm.Series),
+			*cnf.Series.Start,
+			canvas.FgHexColor(cnf.Series.FgHexColor),
+			canvas.FontFaceFromFFA(ffa, cnf.Series.FontStyle, cnf.Series.FontSize),
 		); err != nil {
 			return err
 		}

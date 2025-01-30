@@ -26,6 +26,7 @@ author: ["@Ladicle"]
 date: 2020-06-21T03:56:24+09:00
 tags: ["hugo", "go", "OGP"]
 categories: ["program"]
+series: "Example blog posts"
 ---
 content`,
 			expectFM: &FrontMatter{
@@ -34,6 +35,7 @@ content`,
 				Category: "program",
 				Tags:     []string{"hugo", "go", "OGP"},
 				Date:     mustParseRFC3339(t, "2020-06-21T03:56:24+09:00"),
+				Series:   "Example blog posts",
 			},
 		},
 		{
@@ -44,6 +46,7 @@ author = ["@Ladicle"]
 date = "2020-06-21T03:56:24+09:00"
 tags = ["hugo", "go", "OGP"]
 categories = ["program"]
+series = "Example blog posts"
 +++
 content`,
 			expectFM: &FrontMatter{
@@ -52,6 +55,7 @@ content`,
 				Category: "program",
 				Tags:     []string{"hugo", "go", "OGP"},
 				Date:     mustParseRFC3339(t, "2020-06-21T03:56:24+09:00"),
+				Series:   "Example blog posts",
 			},
 		},
 		{

@@ -11,6 +11,7 @@ type DrawingConfig struct {
 	Category *TextOption          `json:"category,omitempty"`
 	Info     *TextOption          `json:"info,omitempty"`
 	Tags     *BoxTextsOption      `json:"tags,omitempty"`
+	Series   *TextOption          `json:"series,omitempty"`
 }
 
 type TextOption struct {
