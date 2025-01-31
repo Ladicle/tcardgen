@@ -9,6 +9,7 @@ title:
   maxWidth: 946
   lineSpacing: 10
 category:
+  enabled: true
   start:
     px: 126
     py: 119
@@ -16,6 +17,7 @@ category:
   fontSize: 42
   fontStyle: Regular
 info:
+  enabled: true
   start:
     px: 227
     py: 441
@@ -25,11 +27,12 @@ info:
   separator: "・"
   timeFormat: "Jan 2"
 tags:
+  enabled: true
   start:
     px: 1025
     py: 451
   fgHexColor: "#FFFFFF"
-  bgHexColor: "#7F7776"
+  bgHexColor: "#60BCE0"
   fontSize: 22
   fontStyle: Medium
   boxAlign: Right

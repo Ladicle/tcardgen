@@ -19,12 +19,14 @@ var defaultCnf = DrawingConfig{
 		LineSpacing: ptrInt(10),
 	},
 	Category: &TextOption{
+		Enabled:    ptrBool(true),
 		Start:      &Point{X: 126, Y: 119},
 		FgHexColor: "#8D8D8D",
 		FontSize:   42,
 		FontStyle:  fontfamily.Regular,
 	},
 	Info: &TextOption{
+		Enabled:    ptrBool(true),
 		Start:      &Point{X: 227, Y: 441},
 		FgHexColor: "#8D8D8D",
 		FontSize:   38,
@@ -33,6 +35,7 @@ var defaultCnf = DrawingConfig{
 		TimeFormat: "Jan 2",
 	},
 	Tags: &BoxTextsOption{
+		Enabled:    ptrBool(true),
 		TextOption: TextOption{
 			Start:      &Point{X: 1025, Y: 451},
 			FgHexColor: "#FFFFFF",
@@ -96,6 +99,9 @@ func defaultTags(bto *BoxTextsOption) {
 	if bto == nil {
 		bto = &BoxTextsOption{}
 	}
+	if bto.Enabled == nil {
+		bto.Enabled = defaultCnf.Tags.Enabled
+	}
 
 	setArgsAsDefaultTextOption(&bto.TextOption, &defaultCnf.Tags.TextOption)
 
@@ -114,6 +120,9 @@ func defaultTags(bto *BoxTextsOption) {
 }
 
 func setArgsAsDefaultTextOption(to *TextOption, dto *TextOption) {
+	if to.Enabled == nil {
+		to.Enabled = dto.Enabled
+	}
 	if to.Start == nil {
 		to.Start = &Point{X: dto.Start.X, Y: dto.Start.Y}
 	}
@@ -136,4 +145,8 @@ func setArgsAsDefaultTextOption(to *TextOption, dto *TextOption) {
 
 func ptrInt(x int) *int {
 	return &x
+}
+
+func ptrBool(b bool) *bool {
+    return &b
 }
