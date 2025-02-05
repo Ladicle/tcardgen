@@ -36,7 +36,7 @@ var defaultCnf = DrawingConfig{
 	},
 	Tags: &BoxTextsOption{
 		Enabled:    ptrBool(true),
-		Limit:      ptrInt(0),
+		Limit:      0,
 		TextOption: TextOption{
 			Start:      &Point{X: 1025, Y: 451},
 			FgHexColor: "#FFFFFF",
@@ -103,7 +103,7 @@ func defaultTags(bto *BoxTextsOption) {
 	if bto.Enabled == nil {
 		bto.Enabled = defaultCnf.Tags.Enabled
 	}
-	if bto.Limit == nil {
+	if bto.Limit < 0 {
 		bto.Limit = defaultCnf.Tags.Limit
 	}
 
