@@ -28,6 +28,7 @@ info:
   timeFormat: "Jan 2"
 tags:
   enabled: true
+  limit: 0
   start:
     px: 1025
     py: 451
