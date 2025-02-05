@@ -174,7 +174,12 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 	}
 
 	var tags []string
-	for _, t := range fm.Tags {
+	lim := len(fm.Tags)
+	if l := cnf.Tags.Limit; l > 0 && l <= lim {
+		lim = l
+	}
+
+	for _, t := range fm.Tags[:lim] {
 		tags = append(tags, strings.Title(t))
 	}
 
