@@ -32,12 +32,13 @@ type MultiLineTextOption struct {
 
 type BoxTextsOption struct {
 	TextOption
-	BgHexColor string    `json:"bgHexColor,omitempty"`
-	BoxPadding *Padding  `json:"boxPadding,omitempty"`
-	BoxSpacing *int      `json:"boxSpacing,omitempty"`
-	BoxAlign   box.Align `json:"boxAlign,omitempty"`
-	Enabled    *bool     `json:"enabled,omitempty"`
-	Limit      int      `json:"limit,omitempty"`
+	BgHexColor       string    `json:"bgHexColor,omitempty"`
+	BoxPadding       *Padding  `json:"boxPadding,omitempty"`
+	BoxSpacing       *int      `json:"boxSpacing,omitempty"`
+	BoxAlign         box.Align `json:"boxAlign,omitempty"`
+	Enabled          *bool     `json:"enabled,omitempty"`
+	Limit            int       `json:"limit,omitempty"`
+	TitleCaseEnabled *bool     `json:"titleCaseEnabled,omitempty"`
 }
 
 type Point struct {

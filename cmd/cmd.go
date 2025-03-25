@@ -180,7 +180,10 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 	}
 
 	for _, t := range fm.Tags[:lim] {
-		tags = append(tags, strings.Title(t))
+		if *cnf.Tags.TitleCaseEnabled {
+			t = strings.Title(t)
+		}
+		tags = append(tags, t)
 	}
 
 	/* Title */
