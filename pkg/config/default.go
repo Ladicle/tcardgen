@@ -35,8 +35,9 @@ var defaultCnf = DrawingConfig{
 		TimeFormat: "Jan 2",
 	},
 	Tags: &BoxTextsOption{
-		Enabled:    ptrBool(true),
-		Limit:      0,
+		Enabled:          ptrBool(true),
+		Limit:            0,
+		TitleCaseEnabled: ptrBool(true),
 		TextOption: TextOption{
 			Start:      &Point{X: 1025, Y: 451},
 			FgHexColor: "#FFFFFF",
@@ -106,6 +107,9 @@ func defaultTags(bto *BoxTextsOption) {
 	if bto.Limit < 0 {
 		bto.Limit = defaultCnf.Tags.Limit
 	}
+	if bto.TitleCaseEnabled == nil {
+		bto.TitleCaseEnabled = defaultCnf.Tags.TitleCaseEnabled
+	}
 
 	setArgsAsDefaultTextOption(&bto.TextOption, &defaultCnf.Tags.TextOption)
 
@@ -152,5 +156,5 @@ func ptrInt(x int) *int {
 }
 
 func ptrBool(b bool) *bool {
-    return &b
+	return &b
 }
