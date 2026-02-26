@@ -39,6 +39,7 @@ type BoxTextsOption struct {
 	Enabled          *bool     `json:"enabled,omitempty"`
 	Limit            int       `json:"limit,omitempty"`
 	TitleCaseEnabled *bool     `json:"titleCaseEnabled,omitempty"`
+	MoreTags         *bool     `json:"moreTags,omitempty"`
 }
 
 type Point struct {

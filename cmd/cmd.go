@@ -186,6 +186,10 @@ func generateTCard(streams IOStreams, contentPath, outPath string, tpl image.Ima
 		tags = append(tags, t)
 	}
 
+	if len(fm.Tags) > lim && *cnf.Tags.MoreTags {
+		tags = append(tags, "More...")
+	}
+
 	/* Title */
 	if err := c.DrawTextAtPoint(
 		fm.Title,

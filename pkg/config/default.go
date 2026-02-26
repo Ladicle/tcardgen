@@ -37,6 +37,7 @@ var defaultCnf = DrawingConfig{
 	Tags: &BoxTextsOption{
 		Enabled:          ptrBool(true),
 		Limit:            0,
+		MoreTags:         ptrBool(false),
 		TitleCaseEnabled: ptrBool(true),
 		TextOption: TextOption{
 			Start:      &Point{X: 1025, Y: 451},
